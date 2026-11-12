@@ -966,7 +966,7 @@ LoadRotateMatrixPanTilt,0x11B720,mat
 LoadLookAtMatrix,0x11B7E0,mat
 BuildOrthonormalMatrixZ,0x11B830,mat
 TiltMatUpright,0x11B938,mat
-BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3,0x11BA08,mat
+BuildRotateVectorsMatrix__FUxUx,0x11BA08,mat
 MulMatrix3Matrix3,0x11BC00,mat
 DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1,0x11BC88,mat
 DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR,0x11BCF8,mat
@@ -2270,7 +2270,7 @@ OriginateSplineSinkParticles,0x15B9F0,emitter
 EmitParticles__FiP5EMITBP5EMITG,0x15BD20,emitter
 func_0015BE28,0x15BE28,emitter
 SetEmitdvEmitb__FP6EMITDVP5EMITB,0x15BF40,emitter
-CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4,0x15BFD8,emitter
+CalculateEmitdvMatrix__FP6EMITDV,0x15BFD8,emitter
 func_0015C150,0x15C150,emitter
 ExplodeExplParams,0x15C198,emitter
 ExplodeExplExplso__FP4EXPLP6EXPLSO,0x15C1E0,emitter
@@ -2542,7 +2542,7 @@ StartupGs__Fv,0x1700D0,gs
 BlastAqwGifsBothFrames__FP2QW,0x170278,gs
 ClearFrameBuffers__Fv,0x170348,gs
 CeilLog2__FUi,0x1703C0,gs
-InitZpr__FP3ZPR3ZPKP2LO,0x1703F8,gs
+InitGsb__FP3GSBii,0x1703F8,gs
 IgsbBucketFromCgs__Fi,0x170448,gs
 PadGsbToPage__FP3GSB,0x1704B8,gs
 IgsAllocGsb__FP3GSBi,0x170548,gs

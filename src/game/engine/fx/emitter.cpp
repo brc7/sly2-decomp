@@ -1604,7 +1604,7 @@ extern "C" void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, EMITB *emitb)
 }
 } // namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB
 
-namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4 {
+namespace M_CalculateEmitdvMatrix__FP6EMITDV {
 struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 // Float carried as raw bits in a GPR qword (no VU0 transfer).
@@ -1620,11 +1620,11 @@ static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
     for (int i = 0; i < 4; i++)
         r.r[i] = VuAdd(a.r[i], b.r[i]);
 }
-extern MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p) __asm__("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4");
+extern MATRIX4 CalculateEmitdvMatrix__FP6EMITDV(X *p) __asm__("CalculateEmitdvMatrix__FP6EMITDV");
 // Builds the matrix that advances a particle's velocity by one frame (dt): the curl rotation R (curlRate * dt about
 // the axis), plus R * (damping * v + addedVelocity) * dt, as a 4x4 acting on (v, 1).
 // Also known as: UpdatePsys (upstream readable / Sly 1 name; UpdatePsys__FP4PSYS).
-MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
+MATRIX4 CalculateEmitdvMatrix__FP6EMITDV(X *emitdv)
 {
     MATRIX4 mScale = D_002A2D30;
     float *pf = (float *)&mScale;
@@ -1645,7 +1645,7 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
     mD = *pmRot * mScale * VU_FLOAT(g_clock.deltaTime);
     return *pmRot + mD;
 }
-} // namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4
+} // namespace M_CalculateEmitdvMatrix__FP6EMITDV
 
 namespace M_ExplodeWithDefaults {
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
@@ -2116,7 +2116,7 @@ extern const float D_002A5150 = 3.40282347e+38f;
    there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
 namespace SRET_emitter {
 struct M4R { qword r[4]; };
-extern "C" M4R CalculateEmitdvMatrix_value(void *) __asm__("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4");
+extern "C" M4R CalculateEmitdvMatrix_value(void *) __asm__("CalculateEmitdvMatrix__FP6EMITDV");
 extern "C" M4R *CalculateEmitdvMatrixInto(M4R *out, void *emitdv)
 { *out = CalculateEmitdvMatrix_value(emitdv); return out; }
 } // namespace SRET_emitter

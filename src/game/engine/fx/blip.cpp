@@ -95,7 +95,7 @@ void FreeLoroot(BLIPG *p);
 void UpdateLo(BLIPG *p, float dt);
 void SubscribeLoObject(BLIPG *p, LO *plo);
 void *FindShdOrDefault(int oidShader);
-M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
+M4 CalculateEmitdvMatrix__FP6EMITDV(void *p);
 void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, qwordV *);
 void FlushCache(int);
 void SwapSprBuffers(void);
@@ -555,7 +555,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPG *blipGroup)
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};
     VECTORV vMax = {{{-FLT_MAX, -FLT_MAX, -FLT_MAX}}};
     M4 m;
-    m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->emitdv);
+    m = CalculateEmitdvMatrix__FP6EMITDV(blipGroup->emitdv);
     {
     DLI dli;
     BLIPV *pq;
@@ -643,7 +643,7 @@ extern "C" void ProjectBlipgTransform(BLIPG *blipGroup)
             ProjectBlipgTransformAccel(blipGroup);
             return;
         }
-        m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->emitdv);
+        m = CalculateEmitdvMatrix__FP6EMITDV(blipGroup->emitdv);
     }
     {
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};

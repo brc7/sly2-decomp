@@ -63,7 +63,7 @@ int IsPointInVol(VOL*,qword);
 void SetNeelaState(NEELA*,int);
 int IsAsegaRetracted(ASEGA*);
 qword TransformXfPos(XF*,XF*,qword);
-M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
+M3*BuildRotateVectorsMatrix__FUxUx(M3*,qword,qword);
 qword DecomposeRotationMatrixToEuler(M3*);
 int FilterCid98(void*,ROW*);
 void IntersectSwBoundingBox(SW*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
@@ -239,7 +239,7 @@ extern "C" void UpdateNeela(NEELA *neela)
         qword local = TransformXfPos(0, node->parent, position);
         qword direction = VuSub(local, ((XF *)neela->propPart)->localMatq.r[3].q);
         M3 matrix;
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix, neela->propAxis, direction);
+        BuildRotateVectorsMatrix__FUxUx(&matrix, neela->propAxis, direction);
         MOTION *motion = (MOTION *)neela->aimAct;
         motion->angles = DecomposeRotationMatrixToEuler(&matrix);
         break;

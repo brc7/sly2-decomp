@@ -108,7 +108,7 @@ void SetSoCnstrTorque(BOMBV *, int);
 int CanSoTakeDamage(BOMBV *p, ZPR *pm);
 MATRIX3Q *GetLoWorldMatrix(BOMBV *);
 void BuildOrthonormalMatrixZ(MATRIX3Q *, qword, qword);
-void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3Q *, qword, qword);
+void BuildRotateVectorsMatrix__FUxUx(MATRIX3Q *, qword, qword);
 void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(SW *pg, qword q, void (*pfn)(), SOTREE *px, float g, int *pc, XAV ***paps);
 void *AllocFromStack(AREQV *preq);
@@ -512,7 +512,7 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
     bomb->angularVelocityAtDetonation = bomb->GetAngularVelocity();
     switch (bomb->detonationPoseMode) {
     case 0:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[2].q, q);
+        BuildRotateVectorsMatrix__FUxUx(&m, GetLoWorldMatrix(bomb)->r[2].q, q);
         MulStore(bomb, &m);
         break;
     case 1:
@@ -520,7 +520,7 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
         bomb->matDetonate = m;
         break;
     case 2:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[0].q, q);
+        BuildRotateVectorsMatrix__FUxUx(&m, GetLoWorldMatrix(bomb)->r[0].q, q);
         MulStore(bomb, &m);
         break;
     case 3:

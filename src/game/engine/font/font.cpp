@@ -130,7 +130,7 @@ CFontBrx *D_002DE9F0[4];
 extern const unsigned char D_002AA6A1[] __asm__("_ctype_+1");
 extern GIFS D_002DEA00;
 extern FRM *D_002DEA4C __asm__("g_pfrmOpen");
-void func_001703F8(GSB *pgsb, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
+void InitGsb(GSB *pgsb, int a, int b) __asm__("InitGsb__FP3GSBii");
 void BuildBmpGifs(BMP *pbmp, int n, GIFS *pgifs);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 
@@ -168,7 +168,7 @@ void PostFontsLoad()
 {
     GSB gsb;
     int i;
-    func_001703F8(&gsb, 0x1000, 0x1800);
+    InitGsb(&gsb, 0x1000, 0x1800);
     for (i = 0; i < 2; i++) {
         FD *pfd = D_002BE320[i];
         PostLoad(&D_002DE770[i], pfd, &gsb);

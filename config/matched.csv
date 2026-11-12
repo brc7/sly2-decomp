@@ -957,7 +957,7 @@ LoadRotateMatrixPanTilt,0x11B720,48,match,src/game/core/math/mat.cpp
 LoadLookAtMatrix,0x11B7E0,18,match,src/game/core/math/mat.cpp
 BuildOrthonormalMatrixZ,0x11B830,66,match,src/game/core/math/mat.cpp
 TiltMatUpright,0x11B938,49,match,src/game/core/math/mat.cpp
-BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3,0x11BA08,126,match,src/game/core/math/mat.cpp
+BuildRotateVectorsMatrix__FUxUx,0x11BA08,126,match,src/game/core/math/mat.cpp
 MulMatrix3Matrix3,0x11BC00,34,match,src/game/core/math/mat.cpp
 DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1,0x11BC88,27,match,src/game/core/math/mat.cpp
 DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR,0x11BCF8,176,match,src/game/core/math/mat.cpp
@@ -2260,7 +2260,7 @@ OriginateSplineSinkParticles,0x15B9F0,204,match,src/game/engine/fx/emitter.cpp
 EmitParticles__FiP5EMITBP5EMITG,0x15BD20,66,match,src/game/engine/fx/emitter.cpp
 EmitParticlesAt,0x15BE28,68,match,src/game/engine/fx/emitter.cpp
 SetEmitdvEmitb__FP6EMITDVP5EMITB,0x15BF40,37,match,src/game/engine/fx/emitter.cpp
-CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4,0x15BFD8,94,match,src/game/engine/fx/emitter.cpp
+CalculateEmitdvMatrix__FP6EMITDV,0x15BFD8,94,match,src/game/engine/fx/emitter.cpp
 ExplodeWithDefaults,0x15C150,18,match,src/game/engine/fx/emitter.cpp
 ExplodeExplParams,0x15C198,17,match,src/game/engine/fx/emitter.cpp
 ExplodeExplExplso__FP4EXPLP6EXPLSO,0x15C1E0,2,match,src/game/engine/fx/emitter.cpp
@@ -2531,7 +2531,7 @@ StartupGs__Fv,0x1700D0,106,match,src/game/engine/graphics/backend/gs.cpp
 BlastAqwGifsBothFrames__FP2QW,0x170278,51,match,src/game/engine/graphics/backend/gs.cpp
 ClearFrameBuffers__Fv,0x170348,27,match,src/game/engine/graphics/backend/gs.cpp
 CeilLog2__FUi,0x1703C0,14,match,src/game/engine/graphics/backend/gs.cpp
-InitZpr__FP3ZPR3ZPKP2LO,0x1703F8,20,match,src/game/engine/graphics/backend/gs.cpp
+InitGsb__FP3GSBii,0x1703F8,20,match,src/game/engine/graphics/backend/gs.cpp
 IgsbBucketFromCgs__Fi,0x170448,27,match,src/game/engine/graphics/backend/gs.cpp
 PadGsbToPage__FP3GSB,0x1704B8,36,match,src/game/engine/graphics/backend/gs.cpp
 IgsAllocGsb__FP3GSBi,0x170548,65,match,src/game/engine/graphics/backend/gs.cpp

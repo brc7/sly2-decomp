@@ -64,7 +64,7 @@ void InitSwSpliceFrame(void *world);
 void ResolveSwSaveVars__FP2SW(void *world);
 void UpdateSwIllum(void *world);
 void BuildClearGifs__FP2QWG4RGBAi(void *p, void *pv, int c);
-void func_001703F8(GSB *pgsb, int first, int limit) __asm__("InitZpr__FP3ZPR3ZPKP2LO");   /* InitGsb */
+void InitGsb(GSB *pgsb, int first, int limit) __asm__("InitGsb__FP3GSBii");   /* InitGsb */
 void AllocateTextureHashTables(void);
 void ClearTextureHashTables(void);
 void BuildWorldBackgroundImage(void *world, void *pzpr);
@@ -162,9 +162,9 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     STACKSCOPE frame;
     GSB gsb0;   /* the GS memory allocators (gs.h; 0x630 bytes on the EE) */
     GSB gsb1;
-    func_001703F8(&gsb0, 0x1800, 0x4000);
+    InitGsb(&gsb0, 0x1800, 0x4000);
     AllocateTextureHashTables();
-    func_001703F8(&gsb1, 0x1000, 0x1800);
+    InitGsb(&gsb1, 0x1000, 0x1800);
     BuildWorldBackgroundImage(world, &gsb0);
     for (i = 0; i < world->cproxysrc; ) {
         PROXYSRC *pwe = &world->aproxysrc[i];

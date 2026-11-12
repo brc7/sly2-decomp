@@ -1496,7 +1496,7 @@ extern float D_002C3CE8 __asm__("D_002C3CE8");    /* the angle limit */
 
 MATRIX3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("BuildAxisAngleRotationMatrix");
-MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
+MATRIX3 BuildRotateVectorsMatrix__FUxUx(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FUxUx", "BuildRotateVectorsMatrixValue");
 qword GetLoWorldPos(STEP *) __asm__("GetLoWorldPos");
 qword *VECTOR_opAssign(qword *,qword) __asm__("VECTOR_opAssign");
 FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
@@ -1585,7 +1585,7 @@ extern "C" void FitStepToTerrain(STEP *step,HEIGHT *height,int pointCount,const 
         qword normal;
         if(VuToFloat(qwLen)<0.0001f)normal=qwFallback;
         else{__asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq": :"j"(qwLen));__asm__("vmulq.xyzw %0, %1, $Q":"=j"(normal):"j"(qwCross));}
-        adjustment=BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(*(qword *)matOrig.mat[2],normal);
+        adjustment=BuildRotateVectorsMatrix__FUxUx(*(qword *)matOrig.mat[2],normal);
         DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&adjustment,&angle,&point.q);
         if(D_002C3CE8<angle)adjustment=BuildAxisAngleRotationMatrix(point.q,D_002C3CE8);
         const MATRIX3 *pmatOrig=(MATRIX3 *)&matOrig;

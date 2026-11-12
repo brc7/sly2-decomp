@@ -47,7 +47,7 @@ qword GetSoImpulseAngularDelta(NODE*,qword,qword);
 void AddSoAcceleration(void*,qword);
 void AddSoAngularAcceleration(void*,qword);
 void AccelSoTowardMatBounded(JT*,M3P*,float*);
-M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
+M3P BuildRotateVectorsMatrix__FUxUx(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FUxUx", "BuildRotateVectorsMatrixValue");
 M3P BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 qword DecomposeRotationMatrixToEuler(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float NormalizeAngle__Ff(float);extern "C++" { void SetStepTargetHeading(JT*,float) __asm__("SetStepTargetHeading"); }float atan2f(float,float);
@@ -397,7 +397,7 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
     v.q = a;
     a = VuSub(a, GetLoWorldPos(jt));
     d.q = a;
-    m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(g_normalZ.q, a);
+    m1 = BuildRotateVectorsMatrix__FUxUx(g_normalZ.q, a);
     m2 = BuildAxisAngleRotationMatrix(g_normalZ.q, jt->targetHeading);
     m = Mul(m1, m2);
     AccelSoTowardMatBounded(jt, &m, D_002BF548);
@@ -732,7 +732,7 @@ extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
     M3P m;
     qword d = VuSub(GetLoWorldPos(((NODE *)jt->hangHandle)), ((IKJ *)jt->handXf)->worldMatrix.r[3].q);
     qword q = ConvertXfVec(0, ((IKJ *)jt->wristXf)->parent, d);
-    m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), BuildAxisAngleRotationMatrix(D_002A2DA0.q, D_002BF594));
+    m = Mul(BuildRotateVectorsMatrix__FUxUx(D_002A2DA0.q, q), BuildAxisAngleRotationMatrix(D_002A2DA0.q, D_002BF594));
     SetActPositionGoal(jt->pactHand, DecomposeRotationMatrixToEuler(&m));
     jt->janim.dposHang = PosSmooth(jt->janim.dposHang, D_002A2DD0.q, g_clock.deltaTime, D_002BF598, 0);
 }

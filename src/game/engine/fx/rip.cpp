@@ -1153,7 +1153,7 @@ struct S {
 }; /* +0xE0: the touch object (unused here) */
 
 int IsVectorNearlyZero(qword) __asm__("IsVectorNearlyZero");int IsVectorShorterThan2(qword) __asm__("IsVectorShorterThan2");int IsVectorShorterThan5(qword) __asm__("IsVectorShorterThan5");
-M3*BuildAxisAngleRotationMatrix(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*) SLY2_SRET_LABEL("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4", "CalculateEmitdvMatrixInto");
+M3*BuildAxisAngleRotationMatrix(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");M4 *CalculateEmitdvMatrix__FP6EMITDV(M4*,PHYS*) SLY2_SRET_LABEL("CalculateEmitdvMatrix__FP6EMITDV", "CalculateEmitdvMatrixInto");
 void ProjectRipTransform(S*) __asm__("ProjectRipTransform");
 
 // Squared length of the xyz part of a (x lane of the result).
@@ -1289,7 +1289,7 @@ void ProjectRipTransform(S *p)
     if (!IsVectorShorterThan2(p->vel) || !IsVectorShorterThan5(p->phys.accel))
         moving = 1;
     if (moving) {
-        CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(&w.shared.matrix, &p->phys);
+        CalculateEmitdvMatrix__FP6EMITDV(&w.shared.matrix, &p->phys);
         char *page = ClockPage();
         qword v = Point(w.shared.matrix, p->vel);
         p->vel = v;
@@ -1500,7 +1500,7 @@ qword TransformXfPos(void*,LO*,qword) __asm__("TransformXfPos");
 float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
 void GetNormalVectors(qword,qword,qword,qword*) __asm__("GetNormalVectors");
 M3 LoadRotateMatrixEuler(qword) SLY2_SRET_LABEL("LoadRotateMatrixEuler", "LoadRotateMatrixEulerValue");
-M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
+M3 BuildRotateVectorsMatrix__FUxUx(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FUxUx", "BuildRotateVectorsMatrixValue");
 STUCK *CreateStuck(FLYING*,LO*,LO*,qword,qword) __asm__("CreateStuck");
 
 // Evaluate the quadratic a + b*t + c*t^2 at t.
@@ -1587,7 +1587,7 @@ STUCK *CreateStuck(FLYING *p, LO *visual, LO *space, qword position, qword direc
                 flat.q = direction;
                 flat.f[2] = zero;
                 M3 tilt;
-                tilt = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(flat.q, direction);
+                tilt = BuildRotateVectorsMatrix__FUxUx(flat.q, direction);
                 U home;
                 object->velocity = Transform(tilt, Scale(*up, -50.0f, home));
             }

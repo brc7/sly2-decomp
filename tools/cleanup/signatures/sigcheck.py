@@ -3,7 +3,7 @@
 the signature the mangled name encodes?
 
 The decomp often declares a function under its mangled linker name with C-level types of its own choosing:
-  void func_001703F8(void *pzpr, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");   // asm label
+  void func_001703F8(void *pgsb, int a, int b) __asm__("InitGsb__FP3GSBii");   // asm label
   extern "C" int IsEntryInDl__FP2DLPv(void *, void *);                                // C name = mangled name
 The compiler cannot check either: the label (or C linkage) bypasses mangling, so the declared parameter types are
 whatever the author wrote. That is harmless for matching but a 64-bit port compiles these declarations natively,

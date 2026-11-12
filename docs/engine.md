@@ -458,7 +458,6 @@ The research pages argued for these readings; the code keeps a different name fo
 | Code name | Research reading |
 |---|---|
 | `AllocSw__4DMASi` | allocates from the stack heap (`AllocStack`) |
-| `InitZpr__FP3ZPR3ZPKP2LO` | GS block allocator init (`InitGsb`) |
 | `SetStepSpinRatio__FP4STEPf` | sets the spin ratio of the critters (CRITTER) |
 | `EnsureSggAlarm__FP3SGGP5ALARM` | RELAY alarm id set used by command kinds 4/5 |
 | `AddBootyEntryObject__FP5ALARM3OID` | adds a BOOTY entry by oid (CID 0x67 is BOOTY, not ALARM) |

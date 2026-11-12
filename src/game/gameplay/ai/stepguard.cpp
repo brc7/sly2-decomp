@@ -3371,7 +3371,7 @@ struct AIMOBJECT { char pad[0x30]; qword pos; char pad2[0x60]; int unknownA0; };
 struct CID120Island { char pad[0x90]; qword strikeOffset; struct AIMOBJECT *aimObject; };
 
 qword TransformXfPos(int target, int a, qword offset) __asm__("TransformXfPos");
-void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *matrix, qword from, qword to) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+void BuildRotateVectorsMatrix__FUxUx(MATRIX3 *matrix, qword from, qword to) __asm__("BuildRotateVectorsMatrix__FUxUx");
 qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix) __asm__("DecomposeRotationMatrixToEuler");
 // 0x20ACC0: Aims the attack: the rotation that turns the attack's precomputed strike offset toward the
 // predicted target point, stored as the aim act's goal (Euler angles).
@@ -3382,7 +3382,7 @@ extern "C" void UpdateStepguardAim(STEPGUARD *guard)
     qword aimPoint, direction;
     aimPoint = TransformXfPos(guard->aimTarget, ((struct CID120Island *)guard->aimAttack)->aimObject->unknownA0, guard->aimOffset);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(direction) : "j"(aimPoint), "j"(((struct CID120Island *)guard->aimAttack)->aimObject->pos));
-    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&rotation, ((struct CID120Island *)guard->aimAttack)->strikeOffset, direction);
+    BuildRotateVectorsMatrix__FUxUx(&rotation, ((struct CID120Island *)guard->aimAttack)->strikeOffset, direction);
     { struct ACT1 *act = ((struct ACT1 *)guard->aimAct); act->goalValue = DecomposeRotationMatrixToEuler(&rotation); }
 }
 } // namespace M_func_0020ACC0

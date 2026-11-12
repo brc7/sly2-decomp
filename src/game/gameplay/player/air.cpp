@@ -2046,7 +2046,7 @@ void SetStepTargetHeadingFromVector(ACTOR *, qword) __asm__("SetStepTargetHeadin
 void SetStepTargetHeading(ACTOR *, float) __asm__("SetStepTargetHeading");
 void DrainStepplayerMp(ACTOR *, float) __asm__("DrainStepplayerMp");
 qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
-M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
+M3 BuildRotateVectorsMatrix__FUxUx(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FUxUx", "BuildRotateVectorsMatrixValue");
 M3 BuildAxisAngleRotationMatrix(qword, float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 float atan2f(float, float) __asm__("atan2f");
 float cosf(float) __asm__("cosf");
@@ -2408,7 +2408,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         qword b = p->actor->velocity.q;
         a = VuSub(a, VuScaleByX(up, VuDot(a, up)));
         b = VuSub(b, VuScaleByX(up, VuDot(b, up)));
-        basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(g_normalZ, CombineVec(D_002BF890, a, half, b, halfNeg));
+        basis = BuildRotateVectorsMatrix__FUxUx(g_normalZ, CombineVec(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
         actor->local = MulM3(basis, BuildAxisAngleRotationMatrix(g_normalZ, actor->heading));

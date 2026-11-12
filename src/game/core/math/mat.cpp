@@ -75,7 +75,7 @@ void TransposeMatrix(int cStride, int c, float *agSrc, float *agDst);
 M3 LoadRotateMatrixSinCos(qword s, qword c, qword axis);
 M3 *BuildAxisAngleRotationMatrix(M3 *pm, float g, qword axis);
 M3 *BuildOrthonormalMatrixZ(M3 *pm, qword x, qword y);
-M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *pm, qword a, qword b);
+M3 *BuildRotateVectorsMatrix__FUxUx(M3 *pm, qword a, qword b);
 M3 *MulMatrix3Matrix3(M3 *pm, M3 *pa, M3 *pb);
 M4 InvertMatrix4Rigid(M4 *pm);
 }
@@ -85,7 +85,7 @@ M3 func_0011B500R(float rad, qword axis) SLY2_SRET_LABEL("BuildAxisAngleRotation
 void func_0011B500V(M3 *pm, float g, qword axis) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 BuildOrthonormalMatrixZR(qword vecX, qword vecY) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 M3 BuildRotateVectorsMatrixR(qword a, qword b)
-    SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
+    SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FUxUx", "BuildRotateVectorsMatrixValue");
 M3 MulMatrix3Matrix3R(M3 *pa, M3 *pb) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 /* ... or pass the hidden result pointer by hand (C assigns the result straight into the variable; C++ would go through a
    temporary). */
@@ -534,7 +534,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0xd0");
 // Same body as Sly 1's; its caller 0x11B938 is Sly 1's TiltMatUpright.
 // Also known as: BuildRotateVectorsMatrix (upstream readable / Sly 1 name;
 //   BuildRotateVectorsMatrix__FP7MATRIX3G9VU_VECTORT1).
-M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword b)
+M3 *BuildRotateVectorsMatrix__FUxUx(M3 *outMatrix, qword a, qword b)
 {
     VU_FLOAT la, lb;
     la.q = LenB(a);
@@ -585,7 +585,7 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword
 extern "C" M3 BuildRotateVectorsMatrixValue(qword a, qword b)
 {
     M3 m;
-    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, a, b);
+    BuildRotateVectorsMatrix__FUxUx(&m, a, b);
     return m;
 }
 #endif

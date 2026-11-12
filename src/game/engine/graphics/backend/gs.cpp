@@ -52,7 +52,7 @@ struct sceDmaChan;
 struct STACKSCOPEMK { int a; };
 enum ZPK { ZPK_Nil = -1 };
 struct LO;
-struct ZPR : GSB {};   /* InitZpr__FP3ZPR3ZPKP2LO's first parameter: the symbol (Sly 1's, attached by address) names a ZPR; it is a GSB */
+struct ZPR : GSB {};   /* InitGsb's first parameter under its former symbol (InitZpr__FP3ZPR3ZPKP2LO): a GSB */
 
 extern "C" {
 DISPENV D_002DEB80[2];      /* gs' .bss starts here (medium: by layout; menu, save and others read it) */
@@ -567,12 +567,12 @@ uint CeilLog2(uint value)
     return log2;
 }
 
-// Misnamed: this is the GS memory allocator's init (Sly 1's InitGsb), not a ZPR function. font.cpp calls it as
-// InitZpr(&gsb, 0x1000, 0x1800): it zeroes the GSB and sets the first free and current GS address (both "zpk"
-// fields here) to the second argument and the limit ("ploSource") to the third. The Sly 1 symbol
-// InitZpr__FP3ZPR3ZPKP2LO was attached by address; renaming it means changing its C++ signature (left for the type
-// pass).
-void InitZpr(ZPR *pzpr, ZPK zpk, LO *ploSource) { func_002333B4(pzpr, 0, sizeof(GSB)); pzpr->first = pzpr->top = zpk; pzpr->limit = (int)(sptr)ploSource; }   /* (gsb, first, limit) */
+// The GS memory allocator's init (Sly 1's InitGsb): zeroes the GSB and sets the first free and the current GS
+// address to `first` and the limit to `limit`. Its symbol was InitZpr__FP3ZPR3ZPKP2LO (a Sly 1 name attached by
+// address, with a ZPR / ZPK / LO * signature that does not describe it) until v1.30; the callers in font.cpp, sw.cpp
+// and brx_sw.cpp pass a GSB and two GS addresses.
+// Also known as: InitZpr (the former symbol).
+void InitGsb(GSB *gsb, int first, int limit) { func_002333B4(gsb, 0, sizeof(GSB)); gsb->first = gsb->top = first; gsb->limit = limit; }
 
 // Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64. (inferred)
 int IgsbBucketFromCgs(int n)

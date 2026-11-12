@@ -56,7 +56,7 @@ void EvaluateShapeAtParam(PIPE *, float, qword *, qword *);
 float ModPositive__Fff(float, float);     // wrap into range
 float ClampShapeDistance(PIPE *, float);
 void EvaluateShapeAtDistance(PIPE *, float, qword *, qword *);
-MATRIX3Q BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
+MATRIX3Q BuildRotateVectorsMatrix__FUxUx(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FUxUx", "BuildRotateVectorsMatrixValue");
 qword ConvertVecBetweenLos(PIPE *, PIPE *, qword);
 qword GetNormalVector(qword);
 qword GetLoWorldPos(void *q);
@@ -195,7 +195,7 @@ extern "C" void GetPipeGoalMatrix(PIPE *pipe, float distance, int forward, MATRI
             if (Dot(w.tangent, w.direction) > -0.9f)
                 break;
         }
-        rot = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(w.tangent, w.direction);
+        rot = BuildRotateVectorsMatrix__FUxUx(w.tangent, w.direction);
         qword ref = ConvertVecBetweenLos(pipe, 0, pipe->axis);
         fwd.q = Transform(rot, ref);
         qword up = Normalize(w.first, g_normalZ);

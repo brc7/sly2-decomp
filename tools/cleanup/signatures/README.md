@@ -3,7 +3,7 @@
 The decomp often declares a function under its mangled linker name with parameter types of its own choosing:
 
 ```cpp
-void func_001703F8(void *pzpr, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");   // asm label
+void func_001703F8(void *pgsb, int a, int b) __asm__("InitGsb__FP3GSBii");   // asm label
 extern "C" int IsEntryInDl__FP2DLPv(void *, void *);                                // C name = mangled name
 ```
 

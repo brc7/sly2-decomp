@@ -289,7 +289,7 @@ namespace M_func_0020E180 {
 void *AllocFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocFromWorldHeap");
 void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
 void InitSl(void *p, int n) __asm__("InitSl");
-void func_001703F8(GSB *pgsb, int first, int limit) __asm__("InitZpr__FP3ZPR3ZPKP2LO");   /* InitGsb */
+void InitGsb(GSB *pgsb, int first, int limit) __asm__("InitGsb__FP3GSBii");   /* InitGsb */
 void InitRenderTargets(void *p, GSB *pgsb) __asm__("InitRenderTargets");
 void BroadcastGameEvent(void *p, int a, int b) __asm__("BroadcastGameEvent");
 
@@ -316,7 +316,7 @@ extern "C" void InitSwLoadBuffers(SW *world)
     world->ppxrRoot->proxyId = -1;
     world->ppxrRoot->proxyOid = -1;
     InitSl(&world->ppxrRoot->children, SLY2_OFFSETOF(PXR, siblingLink));
-    func_001703F8(&gsb, 0x1400, 0x1800);
+    InitGsb(&gsb, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
         InitRenderTargets(&world->artgt[j], &gsb);
     if (world->transition.flags & 0x20)
