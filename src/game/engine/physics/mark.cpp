@@ -474,14 +474,11 @@ struct VU_VECTOR4 { qword q; VU_VECTOR4(qword a) { q = a; } };
 struct W;
 struct B;
 struct XP;
-struct POINTS { int count; qword *data; };
-struct A { char pad[0x90]; POINTS points; };
-struct SURFACE { qword plane; char pad10[8]; int flags; };
-
-struct NODE { char pad[0x10]; qword point; char pad20[0x50 - 0x20]; SURFACE *surface; EDGE *edge; int reverse; NODE *next; };
+/* A is the part (SOPART: its world mesh), a surface is xfm.h SURF (its plane as one quadword), a node lsg.h's LSG (the
+   exit point, surface and edge of a clipped edge segment, chained through plsgNext). */
 
 extern const float D_002A6AD0 __asm__("D_002A6AD0");   /* defined below where the ELF has it (.rodata order) */
-void AddXp(W *, A *, B *, qword, float, qword, int, void *, void *, XP **) __asm__("AddXp");
+void AddXp(W *, SOPART *, B *, qword, float, qword, int, void *, void *, XP **) __asm__("AddXp");
 
 
 /* signed distance of pos from plane: dot(plane.xyz, pos.xyz) - plane.w, via VU0 macro mode */
@@ -502,46 +499,46 @@ static inline float PlaneDist(VU_VECTOR4 plane, qword pos)
 // Ranks the surfaces near embedded vertices (largest minimum depth above a threshold) and emits vertex/face
 // contacts for them through AddXp. (inferred)
 // Also known as: MarkEmbeddedVertices (upstream readable / Sly 1 name; MarkEmbeddedVertices__FP3SOET0PiiPP3LSGPP2XPT5).
-extern "C" void AddEmbeddedVertexXps(W *w, A *a, B *b, int count, int *indices, NODE **heads, XP **out)
+extern "C" void AddEmbeddedVertexXps(W *w, SOPART *a, B *b, int count, int *indices, LSG **heads, XP **out)
 {
     float d;
-    NODE *m;
+    LSG *m;
     for (int i = 0; i < count; i++) {
-        POINTS *positions = &a->points;
-        qword *data = positions->data;
+        GEOM *positions = &a->meshWorld;
+        qword *data = (qword *)positions->positions;
         int index = indices[i];
-        NODE *head = heads[i];
-        SURFACE *best = 0;
+        LSG *head = heads[i];
+        SURF *best = 0;
         float bestMin = D_002A6AD0;
         float bestOrig;
         qword bestNormal;
         qword position = data[index];
-        NODE *n;
-        for (n = head; n; n = n->next) {
-            SURFACE *s = n->surface;
-            qword plane = s->plane;
-            if (!(s->flags & 8)) {
-                s->flags |= 8;
+        LSG *n;
+        for (n = head; n; n = n->plsgNext) {
+            SURF *s = n->apsurf[1];
+            qword plane = *(qword *)&s->normal;
+            if (!(s->grf & 8)) {
+                s->grf |= 8;
                 float orig = PlaneDist(plane, position);
                 float min = orig;
-                for (m = head; m; m = m->next) {
-                    d = PlaneDist(plane, data[m->edge->aipos[1 - m->reverse]]);
+                for (m = head; m; m = m->plsgNext) {
+                    d = PlaneDist(plane, data[m->pedge->aipos[1 - m->iiposSwap]]);
                     if (d < min) min = d;
                 }
                 if (bestMin < min) { bestNormal = plane; best = s; bestMin = min; bestOrig = orig; }
             }
         }
-        for (n = head; n; n = n->next) n->surface->flags &= ~8;
+        for (n = head; n; n = n->plsgNext) n->apsurf[1]->grf &= ~8;
         VECTOR normal;
         normal.q = bestNormal;
-        AddXp(w, a, b, position, bestOrig, normal.q, 1, &a->points.data[index], best, out);
-        for (m = head; m; m = m->next) {
-            d = PlaneDist(bestNormal, m->point);
+        AddXp(w, a, b, position, bestOrig, normal.q, 1, &a->meshWorld.positions[index], best, out);
+        for (m = head; m; m = m->plsgNext) {
+            d = PlaneDist(bestNormal, m->apos[1]);
             if (d < bestOrig) {
-                qword pt = m->point;
+                qword pt = m->apos[1];
                 VECTOR nn;
                 nn.q = bestNormal;
-                AddXp(w, a, b, pt, d, nn.q, 2, m->edge, best, out);
+                AddXp(w, a, b, pt, d, nn.q, 2, m->pedge, best, out);
             }
         }
     }
