@@ -156,8 +156,8 @@ void PostJtLoadGait(GAIT *gait)
 {
     if (gait->abl[0].animation == 0)
         return;
-    FillBlendSyncTables(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
-    FillBlendSyncTables(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
+    FillBlendSyncTables(sizeof(BLGAIT), 2, gait->abl, SLY2_OFFSETOF(BLGAIT, amrsgFoot0), 2, D_002C3DC0);
+    FillBlendSyncTables(sizeof(BLGAIT), 2, gait->abl, SLY2_OFFSETOF(BLGAIT, amrsgFoot1), 2, D_002C3DC8);
     for (uint ibl = 0; ibl < 2; ibl++)
     {
         BLGAIT *pblgait = &gait->abl[ibl];
