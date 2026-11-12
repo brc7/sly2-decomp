@@ -2614,7 +2614,7 @@ extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
         case 0:
         case 2:
         case 3:
-            if (behavior->shape == behavior->owner->unknown294)
+            if (behavior->shape == behavior->owner->routeShape)
             {
                 float sMin = -behavior->pathParam;
                 float sMax = GetShapeMaxDistance(behavior->shape) - behavior->pathParam;
@@ -2722,7 +2722,7 @@ extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
                     continue;
                 VEC side;
                 side.qw = VCross(g_normalZ, nextDir.qw);
-                if (behavior->shape != behavior->owner->unknown294 && QwordX(VDot(normal.qw, side.qw)) < 0.0f)
+                if (behavior->shape != behavior->owner->routeShape && QwordX(VDot(normal.qw, side.qw)) < 0.0f)
                     g = -g;
                 accel = VAddScaled(accel, VCross(normal.qw, g_normalZ), VU_FLOAT(gMass * g * D_002BE674));
             }
@@ -4973,7 +4973,7 @@ extern "C" void StartBhvCircle(BHV179 *behavior) {
         REGENT *c = behavior->owner->physics ? behavior->owner->physics->pregent : 0;
         void *pv = c ? c->pathzone : 0;
         qword q = GetLoWorldPos(behavior->owner);
-        FindPathzonePathCurve(pv, q, GetLoWorldPos(behavior->owner), behavior->owner->unknown294);
+        FindPathzonePathCurve(pv, q, GetLoWorldPos(behavior->owner), behavior->owner->routeShape);
         SetBhvCircleState(behavior, 1);
     } else {
         SetBhvCircleState(behavior, 0);
@@ -5160,7 +5160,7 @@ extern "C" void UpdateBhvCircle(BHV179 *behavior) {
         return;
     a = (STEPGUARD *)behavior->owner;
     c = a->physics;
-    b = (SHAPE *)a->unknown294;
+    b = a->routeShape;
     if (c) d = c->pregent;
     pathzone = d ? d->pathzone : 0;
     engagement = a->pvEngage;
@@ -5205,7 +5205,7 @@ extern "C" void SetBhvCircleState(BHV179 *behavior, int n)
     } break;
     case 1: {
         BHVWALKPATH *o = (BHVWALKPATH *)PushStepBehavior(behavior->owner, CID_BHVWALKPATH);
-        SetBhvpathShape(o, (SHAPE *)behavior->owner->unknown294, 0);
+        SetBhvpathShape(o, behavior->owner->routeShape, 0);
         o->animSgf = 8;
         o->lookAtTarget = ((STEPGUARD *)behavior->owner)->pvEngage->target;
         o->Start();
@@ -5825,10 +5825,10 @@ extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
                 o->lookAtTarget = behavior->lookAtTarget;
                 o->ignoresBlockers = behavior->isDirect;
                 if (!behavior->lookAtTarget || behavior->unknownAC || !(((STEPGUARD *)behavior->owner)->capabilityFlags & 4)) o->animSgf = 9; else o->animSgf = 8;
-                SetBhvpathShape(o, ((STEPGUARD *)behavior->owner)->unknown294, 0);
+                SetBhvpathShape(o, behavior->owner->routeShape, 0);
                 o->Start();
             } else {
-                SetBhvpathShape(o, ((STEPGUARD *)behavior->owner)->unknown294, 0);
+                SetBhvpathShape(o, behavior->owner->routeShape, 0);
             }
         }
         break;
@@ -6073,7 +6073,7 @@ extern "C" void PlanBhvgoto(BHVGOTO *behavior) {
         }
     }
     if (nextState > 0) if (nextState < 3) {   // (two ifs: "&&" lays the blocks out differently)
-        SHAPE *b = (SHAPE *)behavior->owner->unknown294;
+        SHAPE *b = behavior->owner->routeShape;
         qword pos = GetLoWorldPos(behavior->owner);
         qword q = GetPathlinkEndpointPos(&nextGoal, pos);
         if (behavior->isDirect) {
@@ -6513,7 +6513,7 @@ extern "C" void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
         case 0:
             {
                 BHVWALKPATH *o = (BHVWALKPATH *)PushStepBehavior(behavior->owner, CID_BHVWALKPATH);
-                SHAPE *b = (SHAPE *)behavior->owner->unknown294;
+                SHAPE *b = behavior->owner->routeShape;
                 qword pos = GetLoWorldPos(((STEPGUARD *)behavior->owner));
                 qword q = GetPathlinkEndpointPos(&behavior->pathlink->aend[behavior->segmentIndex], pos);
                 qword d;

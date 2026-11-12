@@ -403,7 +403,7 @@ extern "C" void SetBhvDimitriAttackState(BHV181 *behavior, int k)
         BHVWALKPATH *child;
         SHAPE *palo;
         child = (BHVWALKPATH *)PushStepBehavior(behavior->owner, CID_BHVWALKPATH);
-        palo = (SHAPE *)behavior->owner->unknown294;
+        palo = behavior->owner->routeShape;
         palo->numControlVertices = k;
         {
             qwordV *pq = (qwordV *)palo->vertexPositions;

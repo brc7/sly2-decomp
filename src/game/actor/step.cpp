@@ -112,7 +112,7 @@ extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostStepLoad {
 void PostSoLoad(SO *pso) __asm__("PostSoLoad");
-void *NewSampledShape(int a, int b) __asm__("NewSampledShape");
+SHAPE *NewSampledShape(int oid, int maxPoints) __asm__("NewSampledShape");
 void SetXfRole(SO *pso, XF *pxf, int f) __asm__("SetXfRole");
 void BuildStepPhysPart(STEP *pstep, SOPART *ppart) __asm__("BuildStepPhysPart");
 void HideSoPart(SO *pso, SOPART *ppart) __asm__("HideSoPart");
@@ -123,7 +123,7 @@ void PostBhvstkLoad(BHVSTK *pbhvstk) __asm__("PostBhvstkLoad");
 extern "C" void PostStepLoad(STEP *step)
 {
     PostSoLoad(step);
-    step->unknown294 = NewSampledShape(0x2C9, 0x10);
+    step->routeShape = NewSampledShape(0x2C9, 0x10);
     SetXfRole(step, step->positionXf, 1);
     SetXfRole(step, step->rotationXf, 1);
     if (step->oidPhys != -1) {

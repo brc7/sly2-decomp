@@ -102,7 +102,7 @@ struct STEP : public PO
       int oidPhys;   /* +0x264 oid of the mesh part the phys part is built from (-1 none; LoadJtFromBrx: 0xC7; PostStepLoad) */
       SOPART *ppartPhysMesh;   /* +0x268 that mesh part (PostStepLoad: BuildStepPhysPart from it, then hidden) */
       BHVSTK behaviors; /* the behaviour stack */
-      void *unknown294;
+      SHAPE *routeShape;   /* +0x294 the route the character follows: a 16-point sampled shape (PostStepLoad: NewSampledShape) that FindPathzonePathCurve fills; guards follow it with SetBhvpathShape */
       int unknown298;
       undefined4 unknown29C;
       int acrefDialogSm[6];   /* +0x2A0 reference counts of the six dialog roles' state machines (AddStepDialogSmRefs /

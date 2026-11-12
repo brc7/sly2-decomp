@@ -556,7 +556,7 @@ extern "C" void SetBhvRouteState(BHV182 *behavior, int state)
         break;
     }
     case 1: {
-        SHAPE *psp = (SHAPE *)behavior->owner->unknown294;
+        SHAPE *psp = behavior->owner->routeShape;
         BHVWALKPATH *po;
         psp->numControlVertices = 2;
         {

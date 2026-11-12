@@ -265,7 +265,7 @@ extern "C" void SetBhvWalkToGoal(BHV193 *behavior, qword goal)
     if (!behavior->pbhvNext)
         return;
     STEPGUARD *guard = (STEPGUARD *)behavior->owner;
-    SHAPE *path = (SHAPE *)guard->unknown294;
+    SHAPE *path = guard->routeShape;
     REGENT *region = guard->physics ? guard->physics->pregent : 0;
     CID17 *pathZone = region ? region->pathzone : 0;
     qword start = GetLoWorldPos(guard);
@@ -585,7 +585,7 @@ void UpdateBhvfollowPosition(BHVFOLLOW *behavior)
     u.s.pos = VuAdd(u.s.pos, MulM3(u.s.m, behavior->followOffset));
     {
         STEPGUARD *guard = (STEPGUARD *)behavior->owner;
-        SHAPE *path = (SHAPE *)guard->unknown294;
+        SHAPE *path = guard->routeShape;
         REGENT *region = guard->physics ? guard->physics->pregent : 0;
         CID17 *pathZone = region ? region->pathzone : 0;
         qword start = GetLoWorldPos(guard);
