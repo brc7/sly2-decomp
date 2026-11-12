@@ -257,8 +257,8 @@ and fixes", "Traps") and the compiler facts in [MATCHING_NOTES.md](../MATCHING_N
   had it last; the two calls with a constant float load it before the player): keep a call-shape island, EE-only.
 - **static_cast to a secondary base adds a null test.** `static_cast<GRABSPOT *>(spot)` compiles `spot ? spot + 0xE0
   : 0`; a member call through the derived pointer, or `&static_cast<GRABSPOT &>(*spot)`, does not test (v1.28).
-- **An inline accessor is not free in a hand-tuned function.** `Guard(behavior)->x` (an inline returning the cast
-  owner) grew UpdateBhvpipe's frame where the spelled-out `((STEPGUARD *)behavior->owner)->x` matched (v1.28); try the
+- **An inline accessor is not free in a hand-tuned function.** An inline helper returning the cast owner grew
+  UpdateBhvpipe's frame where the spelled-out `((STEPGUARD *)behavior->owner)->x` matched (v1.28); try the
   cast in place before keeping a helper.
 
 ## 9. Integration workflow

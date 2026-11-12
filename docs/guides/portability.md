@@ -535,7 +535,7 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   InitSwLoadBuffers: GSB, 0x858 natively; InitZpr clears sizeof(GSB)); step.cpp SetStepTargetHeading /
   FixStepAngularVelocity and guardbhv.cpp UpdateBhvpipe on STEP / STEPGUARD (the PO-relative pads were 8 bytes early
   natively past STEP's 16-aligned localVelocity union); UpdateBhvwalkpath's kind-3 binding (payload4 is the DIRBL:
-  ae[0].velocity; payload the CID146, pasegaCur); gait.cpp's DIROWNER / DIRACT / DIRSEL are leap.h CID146 (subject,
+  ae[0].velocity; payload the CID146, pasegaCur); gait.cpp's three directional-animation views are leap.h CID146 (subject,
   pdirbl, pdireCur, grfapl, isForward / isBackward) and sw.h DIRBL (StartDirAnim's raw stores to BASIC's counted
   pointers are EE-only: natively they overwrote the vptr); dirblend.cpp (STEPGUARD::lootPouch; a C fallback for the
   speed read through the truncated pointer); shd.cpp's texture hash tables (0x3FFD * sizeof(void *)); path.cpp
