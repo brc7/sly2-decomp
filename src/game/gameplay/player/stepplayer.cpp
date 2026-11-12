@@ -113,20 +113,20 @@ extern "C" void InitStepplayer(STEPPLAYER *player)
 
 
     player->grabRadius = 20.0f;
-    player->unknown10F0 = 1;
-    player->unknown1048 = 125.0f;
+    player->canFreeLookDefault = 1;
+    player->focusHeight = 125.0f;
     player->renderAlpha = player->renderAlpha2 = 1.0f;
     player->agdtIdle[0] = 1.5f;
     player->agdtIdle[1] = 2.5f;
     player->agdtIdle[2] = 3.0f;
     player->agdtIdle[3] = 5.0f;
-    player->unknown12F0 = player->unknown10F0;
+    player->canFreeLook = player->canFreeLookDefault;
     player->unknown1020 = 100.0f;
     player->maxGadgetPower = 100;
     player->lastGadgetUseTime = -60.0f;
     player->interactMode = -1;
     player->nUnk10e4 = -1;
-    player->unknown1318 = -1;
+    player->grabInteractKind = -1;
     player->hideState = -1;
 
     SetSoZapResponse(player, 0x3FFFFFF, 0);
@@ -195,7 +195,7 @@ extern "C" void PostLoadStepplayer(STEPPLAYER *player)
     player->SendPowerupEvent();
     LoadStepplayerGadgets(player);
     BindStepplayerHpMp(player, g_sw.transition.flags & 4);
-    player->unknown1088 = EnsureTargetRecordById(player);
+    player->targetRecord = EnsureTargetRecordById(player);
     SetSoMass(player, 0.25f);
     if (player->transforms->kind == 0) {
         qword q = GetLoWorldPos(player);
@@ -498,7 +498,7 @@ extern "C" void AddStepplayerAxisXps(STEPPLAYER *player, void *a, LO *b, qword v
         SetJtAirJump(&player->jtair, 0, 0, 0);
         return;
     }
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(player->unknown1010));
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(player->smoothedPosOffset));
     AddStepAxisXps(player, a, b, d);
 }
 } // namespace M_func_00140C30
@@ -510,10 +510,10 @@ extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
     STEPPLAYER *pstepplayerHero = GetHeroPo(&g_sw);
     if (pstepplayerHero != player)
         return;
-    if (pstepplayerHero->unknown1024 != 0) {
-        SetTnTnsOverride(pstepplayerHero->unknown1024, 0);
+    if (pstepplayerHero->overrideTunnel != 0) {
+        SetTnTnsOverride(pstepplayerHero->overrideTunnel, 0);
     }
-    pstepplayerHero->unknown1024 = tn;
+    pstepplayerHero->overrideTunnel = tn;
     if (tn != 0) {
         SetTnTnsOverride(tn, 1);
     }
@@ -862,9 +862,9 @@ extern "C" void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
     }
     *(qword *)v = GetLoWorldPos(player);
     if (player->floorContact) {
-        z = player->vecWorldBasePos.z + player->unknown1048;
+        z = player->vecWorldBasePos.z + player->focusHeight;
     } else if (player->jtair.state == 0x14 || g_cm.nCut != 0 || (void *)g_cm.focus != (void *)player) {
-        v->z += player->vecPivotOffset.z + player->unknown1048;
+        v->z += player->vecPivotOffset.z + player->focusHeight;
         return;
     } else {
         z = player->unknown104C;
@@ -1368,7 +1368,7 @@ extern "C" void StartStepplayerGrabStateC(STEPPLAYER *player, ASEG *aseg, LO *lo
     }
     *(ASEG **)&player->jtgrab.pasegPhase0xC = aseg;
     SetJtGrabState(&player->jtgrab, 0xC, lo, 0);
-    player->unknown1318 = n;
+    player->grabInteractKind = n;
 }
 
 // Splice predicate: grab state != 0xC.
@@ -2438,7 +2438,7 @@ extern "C" void AddStepplayerDialogSmRefs(STEPPLAYER *player, int a, int b)
     AddStepDialogSmRefs(player, a, b);
     if (!b)
         return;
-    if (++player->unknown12F4 == 1) {
+    if (++player->dialogAnimRefCount == 1) {
         PlayStepplayerScriptAnim(player, 0x60B, 9, 5);
         SetJtModeState__FP6JTMODEi(&player->jtmode, -1);
     }
@@ -2453,7 +2453,7 @@ extern "C" void RemoveStepplayerDialogSmRefs(STEPPLAYER *player, int a, int b)
 {
     RemoveStepDialogSmRefs(player, a, b);
     if (b) {
-        if (--player->unknown12F4 == 0) StopStepplayerScriptAnim(player);
+        if (--player->dialogAnimRefCount == 0) StopStepplayerScriptAnim(player);
     }
 }
 } // namespace M_func_00144338

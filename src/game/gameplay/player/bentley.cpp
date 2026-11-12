@@ -84,13 +84,13 @@ extern "C" void InitBentley(BENTLEY *bentley)
 {
     InitStepplayer(bentley);
 //{
-    bentley->unknown1040 = 0;
+    bentley->isGrabReversed = 0;
     bentley->state = -1;
     bentley->subState = -1;
     bentley->aimState = -1;
     bentley->hoverState = -1;
     bentley->grabRadius = 45.0f;
-    bentley->unknown1048 = 125.0f;
+    bentley->focusHeight = 125.0f;
 //}
     InitGait(&bentley->gaitA, bentley, 0x73);
     InitGait(&bentley->gaitB, bentley, 0x73);
@@ -100,7 +100,7 @@ extern "C" void InitBentley(BENTLEY *bentley)
     bentley->waterProbe[2] = 50.0f;
     bentley->waterProbe[3] = -10.0f;
     {
-        SMPA *ps = &bentley->unknown10A8;
+        SMPA *ps = &bentley->waterHeightSmoothing;
         ps->fastSpeed = 250.0f;
         ps->fastDuration = 1.0f;
         ps->slowSpeed = 0.0f;
@@ -632,7 +632,7 @@ extern "C" void SetBentleyState(BENTLEY *p, int k)
             asega = p->unknown1820;
             n = 9;
         } else {
-            jt = p->unknown1028;
+            jt = p->standStateMachine;
             if (kOld != 2)
                 anim = kOld != 7 ? 0x175 : 0x176;
             else
@@ -777,7 +777,7 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
     int state;
     state = bentley->state;
     if (state != 0 && (state != 9) && (bentley->jtgrab.kind != 0)) {
-        bentley->unknown1080 = g_clock.time;
+        bentley->grabBusyTime = g_clock.time;
     }
     GetStepplayerCpdefi(bentley, pcpdefi);
     switch (bentley->state) {
@@ -1209,7 +1209,7 @@ extern "C" void UpdateBentleyAim(BENTLEY *bentley)
             switch (bentley->state) {
             case BENTLEY_IDLE:
                 UpdateBentleyCrosshair(&bentley->btblends, 0);
-                if (bentley->unknown181C && bentley->btblends.state != -1 && bentley->activeStateMachine && FindSmStateOptional__FP2SM3OID(bentley->unknown1028, 0x17B) >= 0)
+                if (bentley->unknown181C && bentley->btblends.state != -1 && bentley->activeStateMachine && FindSmStateOptional__FP2SM3OID(bentley->standStateMachine, 0x17B) >= 0)
                     SnapSma(bentley->activeStateMachine, 0x17B);
                 break;
             case BENTLEY_RUN: case BENTLEY_AIR: case BENTLEY_GRAB: case BENTLEY_WALK:
@@ -1408,7 +1408,7 @@ extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
         }
         case 3: {
             int r = 0;
-            if (bentley->unknown12F0 && (g_grfjoyt & 2))
+            if (bentley->canFreeLook && (g_grfjoyt & 2))
                 r = IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0) == 0;
             return r;
         }
@@ -1964,7 +1964,7 @@ namespace RO_ORDER { extern const char r_D_002A4AE8[] __asm__("D_002A4AE8") = "b
 // ---- bentley's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 extern "C" {
 SNIP D_002BC390[0x76] = {
-    {0x300, 0x1A0, SLY2_OFFSETOF(BENTLEY, gaitA.abl[0].animation)}, {0x300, 0x19E, SLY2_OFFSETOF(BENTLEY, gaitA.abl[1].animation)}, {0x300, 0x1A2, SLY2_OFFSETOF(BENTLEY, unknown1028)}, {0x300, 0x1BC, SLY2_OFFSETOF(BENTLEY, abldirA[0].animation)},
+    {0x300, 0x1A0, SLY2_OFFSETOF(BENTLEY, gaitA.abl[0].animation)}, {0x300, 0x19E, SLY2_OFFSETOF(BENTLEY, gaitA.abl[1].animation)}, {0x300, 0x1A2, SLY2_OFFSETOF(BENTLEY, standStateMachine)}, {0x300, 0x1BC, SLY2_OFFSETOF(BENTLEY, abldirA[0].animation)},
     {0x300, 0x1BD, SLY2_OFFSETOF(BENTLEY, abldirA[1].animation)}, {0x300, 0x1BE, SLY2_OFFSETOF(BENTLEY, abldirA[2].animation)}, {0x300, 0x1BF, SLY2_OFFSETOF(BENTLEY, abldirA[3].animation)}, {0x300, 0x1C0, SLY2_OFFSETOF(BENTLEY, abldirA[4].animation)},
     {0x300, 0x1C1, SLY2_OFFSETOF(BENTLEY, abldirA[5].animation)}, {0x300, 0x1C2, SLY2_OFFSETOF(BENTLEY, abldirA[6].animation)}, {0x300, 0x1C3, SLY2_OFFSETOF(BENTLEY, abldirA[7].animation)}, {0x300, 0x20A, SLY2_OFFSETOF(BENTLEY, pasegSubState0)},
     {0x300, 0x20B, SLY2_OFFSETOF(BENTLEY, pasegSubState2)}, {0x300, 0x20C, SLY2_OFFSETOF(BENTLEY, abldirB[0].animation)}, {0x300, 0x20D, SLY2_OFFSETOF(BENTLEY, abldirB[1].animation)}, {0x300, 0x20E, SLY2_OFFSETOF(BENTLEY, abldirB[2].animation)},

@@ -1475,7 +1475,7 @@ EOPIDROW D_002AC880[1449] = {
     {0xA, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown10C), EOPID_OFF(STEPPLAYER, jtair.unknown10C), EOPID_OFF(STEPPLAYER, jtair.unknown10C), EOPID_NONE}, /* [722] opt 715, STEPPLAYER (+3) */
     {1, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown114), EOPID_OFF(STEPPLAYER, jtair.unknown114), EOPID_OFF(STEPPLAYER, jtair.unknown114), EOPID_NONE}, /* [723] opt 716, STEPPLAYER (+3) */
     {0xA, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown118), EOPID_OFF(STEPPLAYER, jtair.unknown118), EOPID_OFF(STEPPLAYER, jtair.unknown118), EOPID_NONE}, /* [724] opt 717, STEPPLAYER (+3) */
-    {0, 0x92, EOPID_OFF(STEPPLAYER, unknown10F0), EOPID_OFF(STEPPLAYER, unknown10F0), EOPID_OFF(STEPPLAYER, unknown10F0), EOPID_NONE}, /* [725] opt 410, STEPPLAYER (+3) */
+    {0, 0x92, EOPID_OFF(STEPPLAYER, canFreeLookDefault), EOPID_OFF(STEPPLAYER, canFreeLookDefault), EOPID_OFF(STEPPLAYER, canFreeLookDefault), EOPID_NONE}, /* [725] opt 410, STEPPLAYER (+3) */
     {5, 0x92, EOPID_OFF(STEPPLAYER, jthurt.maxHitPoints), EOPID_OFF(STEPPLAYER, jthurt.maxHitPoints), EOPID_OFF(STEPPLAYER, jthurt.maxHitPoints), EOPID_NONE}, /* [726] opt 380, STEPPLAYER (+3) */
     {5, 0x24, EOPID_PMFI(GetStepplayerHp), EOPID_PMF(SetStepplayerHp), EOPID_NONE, EOPID_NONE}, /* [727] opt 381, STEPPLAYER (+3) */
     {5, 0x92, EOPID_OFF(STEPPLAYER, maxGadgetPower), EOPID_OFF(STEPPLAYER, maxGadgetPower), EOPID_OFF(STEPPLAYER, maxGadgetPower), EOPID_NONE}, /* [728] opt 718, STEPPLAYER (+3) */
@@ -1511,7 +1511,7 @@ EOPIDROW D_002AC880[1449] = {
     {0, 0x92, EOPID_INT(0x11AC), EOPID_INT(0x11AC), EOPID_INT(0x11AC), EOPID_NONE}, /* [758] opt 741, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerPushing), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [759] opt 742, STEPPLAYER (+3) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepplayerThrowParams), EOPID_FN(RefThunk_SetStepplayerThrowParams), EOPID_INT(7), EOPID_NONE}, /* [760] opt 743, STEPPLAYER (+3) */
-    {0, 0x92, EOPID_OFF(STEPPLAYER, unknown12F0), EOPID_OFF(STEPPLAYER, unknown12F0), EOPID_OFF(STEPPLAYER, unknown12F0), EOPID_NONE}, /* [761] opt 744, STEPPLAYER (+3) */
+    {0, 0x92, EOPID_OFF(STEPPLAYER, canFreeLook), EOPID_OFF(STEPPLAYER, canFreeLook), EOPID_OFF(STEPPLAYER, canFreeLook), EOPID_NONE}, /* [761] opt 744, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerInJtMode), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [762] opt 745, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerJtModeBinocucom), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [763] opt 746, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerJtModeRecon), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [764] opt 747, STEPPLAYER (+3) */

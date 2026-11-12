@@ -354,7 +354,7 @@ extern "C" STEPGUARD *PickBhvfollowTarget(BHVFOLLOW *behavior)
     pos = GetLoWorldPos(behavior->leader);
     ignoreMask = GetSgfMask(SGF_KO) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(SGF_JUGGLED) |
           GetSgfMask(0x2A) | GetSgfMask(0x2B);
-    record = (TARGETREC *)((STEPPLAYER *)behavior->owner)->unknown1088;
+    record = (TARGETREC *)((STEPPLAYER *)behavior->owner)->targetRecord;
     for (i = 0; i < record->guardCount; i++) {
         STEPGUARD *guard = record->guards[i];
         float distance;

@@ -208,7 +208,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
     WORK w;
     float lowSpeed, highSpeed;
     STEPPLAYER *actor = pipe->player;
-    actor->unknown1010 = PosSmooth(actor->unknown1010, D_002A2DD0.q, g_clock.deltaTime, &D_002BF928, 0);
+    actor->smoothedPosOffset = PosSmooth(actor->smoothedPosOffset, D_002A2DD0.q, g_clock.deltaTime, &D_002BF928, 0);
     register float amount __asm__("$f4"), dot __asm__("$f3"), zero __asm__("$f2");
     register int previous __asm__("$5");
     {
@@ -513,9 +513,9 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         qword offset = Vector(ConvertPosBetweenLos(pipe->player, 0, pipe->handPosition));
         STEPPLAYER *owner;
         qword point = WorldInputs(pipe, &w.point, &w.world, offset, owner);
-        owner->unknown1010 = VuSub(point, offset);
-        pipe->player->unknown1070 = VuSub(pipe->player->unknown1060, w.point.q);
-        ((U *)&pipe->player->unknown1070)->i[2] = 0;
+        owner->smoothedPosOffset = VuSub(point, offset);
+        pipe->player->goalDelta = VuSub(pipe->player->goalPos, w.point.q);
+        ((U *)&pipe->player->goalDelta)->i[2] = 0;
         SetStepplayerTnOverride(pipe->player, ((PATH *)pipe->pipeCurve)->ptn);
         if (((PATH *)pipe->pipeCurve)->attachEffectId) {
             EFFECT *e = CreateSfxSound(((PATH *)pipe->pipeCurve)->attachEffectId);
@@ -540,10 +540,10 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         UnsubscribeLoObject(((PATH *)pipe->pipeCurve), pipe->player);
         LinkStepAttachment(pipe->player, ((PATH *)pipe->pipeCurve), 0);
         STEPPLAYER *actor = pipe->player;
-        w.target.q = actor->unknown1060;
+        w.target.q = actor->goalPos;
         void *focus;
-        actor->unknown1070 = GoalInputs(&w.target, GetLoWorldPos(actor), focus);
-        ((U *)&pipe->player->unknown1070)->i[2] = 0;
+        actor->goalDelta = GoalInputs(&w.target, GetLoWorldPos(actor), focus);
+        ((U *)&pipe->player->goalDelta)->i[2] = 0;
         SetStepplayerTnOverride(pipe->player, focus);
         if (((PATH *)pipe->pipeCurve)->releaseEffectId) {
             EFFECT *e = CreateSfxSound(((PATH *)pipe->pipeCurve)->releaseEffectId);
@@ -591,7 +591,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
 extern "C" int CanJtUseGadgetOnPipe(JTPIPE *pipe, int k) {
     if (k == 3) {
         int r = 0;
-        if (pipe->player->unknown12F0 && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0);
+        if (pipe->player->canFreeLook && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0);
         return r;
     }
     return 0;

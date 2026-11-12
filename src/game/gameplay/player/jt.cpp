@@ -229,7 +229,7 @@ extern "C" void InitJt(JT *jt)
     register float e __asm__("$f4")=250.0f;
     register float f __asm__("$f6")=1.0f;
     register float g __asm__("$f0")=4500.0f;
-    jt->waterProbe[0]=a; jt->waterProbe[1]=b; jt->waterProbe[2]=c; jt->waterProbe[3]=d; jt->unknown10A8.fastSpeed=e; InitLm(&jt->unknown10A8,f,g);
+    jt->waterProbe[0]=a; jt->waterProbe[1]=b; jt->waterProbe[2]=c; jt->waterProbe[3]=d; jt->waterHeightSmoothing.fastSpeed=e; InitLm(&jt->waterHeightSmoothing,f,g);
     }
     ScaleStepSpinSpeed(jt, 1.6f);
     jt->gadgetPockets[0].idGadget = 0x1A;
@@ -1262,8 +1262,8 @@ extern "C" void UpdateJtStand(JT *jt)
     RebuildJtXmg(jt, jt->unknown19D8, jt->unknown19E0, jt->pact5Unk19f0, 5.0f, &jt->unknown1520[0]);
     RebuildJtXmg(jt, jt->unknown19D4, jt->unknown19DC, jt->pact5Unk19f4, 5.0f, &jt->unknown1520[1]);
     if ((!TryMatchJtXmg(jt, &jt->unknown1520[0], jt->pact5Unk19f0) || !TryMatchJtXmg(jt, &jt->unknown1520[1], jt->pact5Unk19f4)) &&
-        !jt->unknown1514 && jt->unknown1028) {
-        if (FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17C) >= 0) SnapSma(jt->activeStateMachine, 0x17C);
+        !jt->unknown1514 && jt->standStateMachine) {
+        if (FindSmStateOptional__FP2SM3OID(jt->standStateMachine, 0x17C) >= 0) SnapSma(jt->activeStateMachine, 0x17C);
         jt->unknown1514 = 1;
     }
 }
@@ -3237,7 +3237,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_SurfaceClimb:
                 SetSoCnstrForce(jt, 0);
                 jt->unknown1F18->HandleSpliceEvent(6, 0, 0, 0, 0);
-                if (jt->unknown1024 == *(TN **)((char *)jt->unknown1F18 + 0x110))
+                if (jt->overrideTunnel == *(TN **)((char *)jt->unknown1F18 + 0x110))
                     SetPlayerTn(jt, 0);
                 jt->unknown1F18 = 0;
                 break;
@@ -3264,7 +3264,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
         {
             case JTS_Stand:
             {
-                stateMachine = jt->unknown1028;
+                stateMachine = jt->standStateMachine;
                 SlotSetRole(jt, jt->positionXf, 1);
                 SlotSetRole(jt, jt->rotationXf, 1);
                 jt->unknown1514 = 0;
@@ -3846,7 +3846,7 @@ int JT::CanUseGadget(int gadgetId)
         default:
             return 0;
         case 3:
-            return unknown12F0 != 0 && (g_grfjoyt & 2) && !g_cm.part3a0.FIsTop();
+            return canFreeLook != 0 && (g_grfjoyt & 2) && !g_cm.part3a0.FIsTop();
         case 0x28:
             if (unknown1D30 != 0)
                 return 0;
@@ -4421,7 +4421,7 @@ extern const unsigned int D_002A5F98[2] __asm__("D_002A5F98") = {0xFFFF0000, (un
 } // namespace ANPTR_jt
 
 // ---- jt's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-SNIP D_002BE990[0xAD] = {{0x200, 0x7C, SLY2_OFFSETOF(JT, unknown1028)}, {0x200, 0x7D, SLY2_OFFSETOF(JT, gait.abl[0].animation)}, {0x200, 0x7E, SLY2_OFFSETOF(JT, gait.abl[1].animation)}, {0x200, 0x7F, SLY2_OFFSETOF(JT, abldirJts5[0].animation)},
+SNIP D_002BE990[0xAD] = {{0x200, 0x7C, SLY2_OFFSETOF(JT, standStateMachine)}, {0x200, 0x7D, SLY2_OFFSETOF(JT, gait.abl[0].animation)}, {0x200, 0x7E, SLY2_OFFSETOF(JT, gait.abl[1].animation)}, {0x200, 0x7F, SLY2_OFFSETOF(JT, abldirJts5[0].animation)},
     {0x200, 0x80, SLY2_OFFSETOF(JT, abldirJts5[1].animation)}, {0x200, 0x81, SLY2_OFFSETOF(JT, abldirJts5[2].animation)}, {0x200, 0x82, SLY2_OFFSETOF(JT, abldirJts5[3].animation)}, {0x200, 0x83, SLY2_OFFSETOF(JT, abldirJts5[4].animation)},
     {0x200, 0x84, SLY2_OFFSETOF(JT, abldirJts5[5].animation)}, {0x200, 0x85, SLY2_OFFSETOF(JT, abldirJts5[6].animation)}, {0x200, 0x86, SLY2_OFFSETOF(JT, abldirJts5[7].animation)}, {0x300, 0x96, SLY2_OFFSETOF(JT, unknown14D4)},
     {0x300, 0x97, SLY2_OFFSETOF(JT, unknown14D8)}, {0x320, 0xC9, SLY2_OFFSETOF(JT, jtair.precAir)}, {0x320, 0xCB, SLY2_OFFSETOF(JT, jtair.precAirWallRun)}, {0x200, 0x9E, SLY2_OFFSETOF(JT, jtair.pasegLaunch)}, {0x200, 0x9F, SLY2_OFFSETOF(JT, jtair.pasegLaunch10)},

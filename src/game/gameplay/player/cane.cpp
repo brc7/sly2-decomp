@@ -226,7 +226,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
         enterEffect = 11;
         stopDelay = D_002BF430;
         clip = jt->ablSweep[2].pasegbl;
-        int found = FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B);
+        int found = FindSmStateOptional__FP2SM3OID(jt->standStateMachine, 0x17B);
         /* Native V1 is rebuilt after the cancellation callback. */
         clockHigh = (char *)0x002e0000;
         if (found >= 0) {
@@ -242,7 +242,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
         enterEffect = 11;
         stopDelay = D_002BF430;
         clip = jt->ablSweep[3].pasegbl;
-        int found = FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B);
+        int found = FindSmStateOptional__FP2SM3OID(jt->standStateMachine, 0x17B);
         /* Native V1 is rebuilt after the cancellation callback. */
         clockHigh = (char *)0x002e0000;
         if (found >= 0) {
@@ -294,7 +294,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
     }
     attack_ready:
         jt->unknown19B0 = sharedDeadline;
-        if (!sharedMode && FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B) >= 0)
+        if (!sharedMode && FindSmStateOptional__FP2SM3OID(jt->standStateMachine, 0x17B) >= 0)
             SnapSma(jt->activeStateMachine, 0x17B);
         break;
     case 14: {
@@ -432,7 +432,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                 : "f"(delay), "m"(jt->state)
                 : "memory");
         jt->unknown19B0 = deadline;
-        if (!mode && FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17B) >= 0)
+        if (!mode && FindSmStateOptional__FP2SM3OID(jt->standStateMachine, 0x17B) >= 0)
             SnapSma(jt->activeStateMachine, 0x17B);
         break;
     }

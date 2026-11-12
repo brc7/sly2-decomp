@@ -598,7 +598,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         float heading;
         GetGrabspotPositionNear(ctx->setting, ctx->actor, &ctx->value, &goal, &heading);
         float speedMax;
-        if (ctx->actor->unknown1040 == 1)
+        if (ctx->actor->isGrabReversed == 1)
             speedMax = LengthOf(ctx->axes[2].direction.q) * ctx->actor->activeAnimation->speed;
         else
             speedMax = LengthOf(ctx->axes[4].direction.q) * ctx->actor->activeAnimation->speed;
@@ -617,7 +617,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         } else {
             U side;
             float angle;
-            if (ctx->actor->unknown1040 == 1)
+            if (ctx->actor->isGrabReversed == 1)
                 angle = heading - 1.5707964f;
             else
                 angle = heading + 1.5707964f;
@@ -651,12 +651,12 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 if (45.0f < LengthOf(vel.q)) {
                     SetJtHideFacingKind__FP2JT4HFDK(ctx, 0);
                 } else if (20.0f < ((U *)&ctx->actor->localVelocity)->f[1]) {
-                    if (ctx->actor->unknown1040 == 1)
+                    if (ctx->actor->isGrabReversed == 1)
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 1);
                     else
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
                 } else if (((U *)&ctx->actor->localVelocity)->f[1] < -20.0f) {
-                    if (ctx->actor->unknown1040 == 1)
+                    if (ctx->actor->isGrabReversed == 1)
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
                     else
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 1);
@@ -667,9 +667,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12)) {
                 FOCUS *focus = ctx->focus;
                 if (lateral < -25.0f && (focus->flags & 1)) {
-                    step = ctx->action == 0 && ctx->actor->unknown1040 == 0 ? 3 : 2;
+                    step = ctx->action == 0 && ctx->actor->isGrabReversed == 0 ? 3 : 2;
                 } else if (25.0f < lateral && (focus->flags & 2)) {
-                    step = ctx->action == 0 && ctx->actor->unknown1040 == 0 ? 2 : 3;
+                    step = ctx->action == 0 && ctx->actor->isGrabReversed == 0 ? 2 : 3;
                 }
             }
             if (ctx->action == 0)
@@ -853,7 +853,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     switch (ctx->step) {
     case 1:
         UpdateDirectionalBlend(ctx->actor, ctx->axes, ctx->request);
-        if (ctx->actor->unknown1024 == ctx->x68) {
+        if (ctx->actor->overrideTunnel == ctx->x68) {
             switch (ctx->x2C) {
             case 1:
             case 2:
@@ -1760,7 +1760,7 @@ extern "C" void SetJtHideFacingKind__FP2JT4HFDK(JTGRAB *grab, HFDK hfdk)
         grab->jtfock = (JTFOCK)1;
         break;
     case 1: case 2:
-        if (grab->player->unknown1024 == grab->cameraTunnel) grab->jtfock = (JTFOCK)2;
+        if (grab->player->overrideTunnel == grab->cameraTunnel) grab->jtfock = (JTFOCK)2;
         else grab->jtfock = (JTFOCK)0;
         break;
     }
@@ -1964,7 +1964,7 @@ int IsCameraPolicyActive__FP5CPLCY(void *pcplcy);
 static inline int IsGrabCameraFree(JTGRAB *grab)
 {
     int f = 0;
-    if (grab->player->unknown12F0 && (g_grfjoyt & 2)) f = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+    if (grab->player->canFreeLook && (g_grfjoyt & 2)) f = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
     return f;
 }
 /* Whether input n is allowed in the current grab state (n 3: only in states 0, 1, 3, 4 and 13 with the camera

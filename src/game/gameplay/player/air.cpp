@@ -202,7 +202,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     vel = JtPlanLaunchVz(air, kind);
     air->player->SetVelocity(vel);
     t = g_clock.time;
-    air->player->unknown131C = t;
+    air->player->stuckCheckTime = t;
     if (kind != 6)
         air->startTime = g_clock.time;
     switch (kind)
@@ -606,7 +606,7 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
             register qword position __asm__("vf1");
             __asm__("qmtc2.ni %1,%0" : "=j"(position) : "r"(point));
             __asm__("vsub.xyzw %0,%0,%1" : "+j"(delta) : "j"(position));
-            actor->unknown1010 = delta;
+            actor->smoothedPosOffset = delta;
         }
 #else
         /* Mode 17 (edge catch), in C: the basis (-edge normal, then the two normals GetNormalVectors builds from it),
@@ -629,7 +629,7 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
             position.q = GetLoWorldPos(actor);
             for (k = 0; k < 4; k++)
                 delta.f[k] -= position.f[k];
-            actor->unknown1010 = delta.q;
+            actor->smoothedPosOffset = delta.q;
         }
 #endif
         ClearVelocity(((ACTOR *)air->player));
@@ -1675,7 +1675,7 @@ void UpdateJtAirInput(JTAIR *air)
                     air->player->SetPlayerState(0);
                     break;
                 }
-                if (FJtAirWedged(air->stateStartTime, air->player, &air->player->unknown131C))
+                if (FJtAirWedged(air->stateStartTime, air->player, &air->player->stuckCheckTime))
                     ReturnJtToSafePlace(air->player, 0);
                 break;
             case 3:
@@ -1703,7 +1703,7 @@ void UpdateJtAirInput(JTAIR *air)
                         break;
                     }
                 }
-                if (FJtAirWedged(air->stateStartTime, air->player, &air->player->unknown131C))
+                if (FJtAirWedged(air->stateStartTime, air->player, &air->player->stuckCheckTime))
                     ReturnJtToSafePlace(air->player, 0);
                 break;
             case 0x11:
@@ -1717,7 +1717,7 @@ void UpdateJtAirInput(JTAIR *air)
                 else
                 {
                     STEPPLAYER *player = air->player;
-                    player->unknown1010 = PosSmooth(player->unknown1010, D_002A2DD0, g_clock.deltaTime, &D_002BF820, 0);
+                    player->smoothedPosOffset = PosSmooth(player->smoothedPosOffset, D_002A2DD0, g_clock.deltaTime, &D_002BF820, 0);
                     *(qword *)&vec = ConvertXfPos(air->edge->transform, 0, air->edgePosition);
                     if (g_clock.time - air->stateStartTime > 0.03f &&
                         !FCheckJtEdgeGrab(air, air->edge, *(qword *)&vec, air->unknown100, (void *)air->unknown104, &air->normalEdge))
@@ -4484,7 +4484,7 @@ extern "C" int CanJtUseGadgetInAir(JTAIR *p, int k) {
     case 3:
         {
             int r = 0;
-            if (p->state == 0x11 && p->player->unknown12F0 && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+            if (p->state == 0x11 && p->player->canFreeLook && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
             return r;
         }
     case 2: case 5: case 27:

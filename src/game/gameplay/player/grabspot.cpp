@@ -276,7 +276,7 @@ extern "C" void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qw
     }
     if (!pg)
         return;
-    if (pj->unknown1040 == 1) {
+    if (pj->isGrabReversed == 1) {
         float m = -1.0f;
         qword s = Bc(*(int *)&m);
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(n), "j"(s));
@@ -415,7 +415,7 @@ extern "C" void GetPoleGrabspotGrabPosition(CID34 *pole, float g, STEPPLAYER *pj
         *pv = VuSub(VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->pivotOffset);
     }
     if (pg) {
-        if (pj->unknown1040 == 1)
+        if (pj->isGrabReversed == 1)
             gPan += 3.14159265f;
         *pg = gPan;
     }
@@ -508,7 +508,7 @@ extern "C" void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *
     }
     if (pg) {
         float gAng = atan2f(QwordY(d), QwordX(d));
-        if (pj->unknown1040 == 1)
+        if (pj->isGrabReversed == 1)
             gAng += 3.14159265f;
         *pg = gAng;
     }

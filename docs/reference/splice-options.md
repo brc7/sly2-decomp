@@ -901,7 +901,7 @@ parent STEP; 156 options in all.
 | 342 | `virtual slot 0x5A, 0xC` | int | get | 751 |
 | 380 | `jthurt.maxHitPoints` | int | get set file | 726 |
 | 381 | `GetStepplayerHp` / `SetStepplayerHp` | int | get set | 727 |
-| 410 | `unknown10F0` | bool | get set file | 725 |
+| 410 | `canFreeLookDefault` | bool | get set file | 725 |
 | 446 | `RefThunk_StartStepplayerFollow` | - | method(2) | 733 |
 | 667 | `RefThunk_SetStepplayerGrabTarget` | - | method(1) | 731 |
 | 670 | `RefThunk_SetStepplayerGrabTargetEx` | - | method(1) | 738 |
@@ -941,7 +941,7 @@ parent STEP; 156 options in all.
 | 741 | `+0x11AC` | bool | get set file | 758 |
 | 742 | `IsStepplayerPushing` | bool | get | 759 |
 | 743 | `RefThunk_SetStepplayerThrowParams` | - | method(7) file | 760 |
-| 744 | `unknown12F0` | bool | get set file | 761 |
+| 744 | `canFreeLook` | bool | get set file | 761 |
 | 745 | `IsStepplayerInJtMode` | bool | get | 762 |
 | 746 | `IsStepplayerJtModeBinocucom` | bool | get | 763 |
 | 747 | `IsStepplayerJtModeRecon` | bool | get | 764 |

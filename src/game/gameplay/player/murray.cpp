@@ -93,7 +93,7 @@ extern "C" void InitMurray(MURRAY *murray)
     murray->throwRange = 1500.0f;
     murray->throwSpeed = 3500.0f;
     murray->grabRadius = 60.0f;
-    murray->unknown1048 = 125.0f;
+    murray->focusHeight = 125.0f;
     InitGait(&murray->gaitA, murray, 0x15);
     InitGait(&murray->gaitB, murray, 0x15);
     InitGait(&murray->gaitD, murray, 0x15);
@@ -107,8 +107,8 @@ extern "C" void InitMurray(MURRAY *murray)
     register float e __asm__("$f2") = 250.0f;
     register float f __asm__("$f5") = 1.0f;
     register float g __asm__("$f3") = 4500.0f;
-    murray->unknown1AC8=a; murray->releaseTime=a; murray->waterProbe[0]=b; murray->waterProbe[1]=c; murray->waterProbe[2]=50.0f; murray->waterProbe[3]=d; murray->unknown10A8.fastSpeed=e;
-    Init(&murray->unknown10A8, f, g);
+    murray->unknown1AC8=a; murray->releaseTime=a; murray->waterProbe[0]=b; murray->waterProbe[1]=c; murray->waterProbe[2]=50.0f; murray->waterProbe[3]=d; murray->waterHeightSmoothing.fastSpeed=e;
+    Init(&murray->waterHeightSmoothing, f, g);
     }
     InitThrow(&murray->jtthrowAim, murray);
     murray->grfGrabTarget = 4;
@@ -1037,7 +1037,7 @@ void SetMurrayState(MURRAY *murray, int next) __asm__("SetMurrayState"); void Se
     case MURRAY_IDLE:
         SetXfRole(murray, murray->positionXf, 1);
         SetXfRole(murray, murray->rotationXf, 1);
-        source = murray->unknown1028;
+        source = murray->standStateMachine;
         murray->localVelocity = D_002A2DD0.q;
         if (old != 2) {
             id = (old != 10) ? 0x175 : 0x176;
@@ -1174,7 +1174,7 @@ void GetJtPipeVelocity(void *p, int *pf) __asm__("GetJtPipeVelocity");
 // Also known as: GetMurrayCpdefi (upstream readable / Sly 1 name; GetMurrayCpdefi__FP6MURRAYP9ACTORPOSE).
 extern "C" void GetMurrayCpdefi(MURRAY *murray, int *pf)
 {
-    if (murray->state != MURRAY_IDLE && murray->state != MURRAY_PLAYER_STATE_4 && murray->jtgrab.kind) murray->unknown1080 = g_clock.time;
+    if (murray->state != MURRAY_IDLE && murray->state != MURRAY_PLAYER_STATE_4 && murray->jtgrab.kind) murray->grabBusyTime = g_clock.time;
     GetStepplayerCpdefi(murray, pf);
     switch (murray->state) {
     case MURRAY_ATTACK:
@@ -1321,7 +1321,7 @@ extern "C" void UpdateMurrayFlop(MURRAY *murray)
         if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) SetMurrayState(murray, MURRAY_IDLE);
         else if (murray->flopSubstate == 1) {
             if (murray->pxpFlop) SetMurrayFlopSubstate(murray, 2);
-            else if (IsJtStuck(murray, &murray->unknown131C, murray->unknown13DC)) ReturnJtToSafePlace(murray, 0);
+            else if (IsJtStuck(murray, &murray->stuckCheckTime, murray->unknown13DC)) ReturnJtToSafePlace(murray, 0);
         }
         if (murray->flopSubstate == s || murray->flopSubstate == -1) break;
     }
@@ -1454,7 +1454,7 @@ extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
         __asm__("qmtc2.ni %5,%1\n\tvsub.xyzw %0,%0,%6\n\tlw %2,%8\n\tvadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %3,%7,%1x\n\tqmfc2.ni %4,%3":"+&j"(v),"=&j"(k),"=r"(setter),"=j"(r),"=r"(argument):"r"(bits),"j"(d),"j"(up),"m"(vt[35].pfn));
         u.q=k;
         setter((char*)murray+delta,argument);
-        murray->unknown131C = g_clock.time;
+        murray->stuckCheckTime = g_clock.time;
         break;
     }
     case 2: {
@@ -2717,7 +2717,7 @@ namespace M_SetMurrayLiftSubstate {
 typedef unsigned long ulong;
 struct M4 { QWROW row[4]; };
 struct EVENT { float time; int kind,tag,pad; };
-/* STEPPLAYER::unknown1088 as written here: +0x1C an active flag. */
+/* STEPPLAYER::targetRecord as written here: +0x1C an active flag. */
 struct PROXYV { char pad[0x1C]; int active; };
 struct MOTION;
 extern M4 D_002A2D30 __asm__("D_002A2D30");
@@ -2843,10 +2843,10 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             break;
         if (murray->liftSubstate < 0)
             break;
-        ((PROXYV *)murray->unknown1088)->active = 1;
+        ((PROXYV *)murray->targetRecord)->active = 1;
         goto end;
     } while (0);
-    ((PROXYV *)murray->unknown1088)->active = 0;
+    ((PROXYV *)murray->targetRecord)->active = 0;
 end:;
 }
 } // namespace M_SetMurrayLiftSubstate
@@ -2895,7 +2895,7 @@ extern "C" int CanMurrayUseGadget__6MURRAYi(MURRAY *p, int k)
     case 3:
     {
         int r = 0;
-        if (p->unknown12F0 && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+        if (p->canFreeLook && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
         return r;
     }
     case 22:
@@ -3108,7 +3108,7 @@ struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record
 LO *D_002F7900;   /* g_pmurray */
 
 // ---- murray's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-SNIP D_002C0270[0x89] = {{0x300, 0x1A0, SLY2_OFFSETOF(MURRAY, gaitA.abl[0].animation)}, {0x300, 0x19E, SLY2_OFFSETOF(MURRAY, gaitA.abl[1].animation)}, {0x300, 0x1A2, SLY2_OFFSETOF(MURRAY, unknown1028)},
+SNIP D_002C0270[0x89] = {{0x300, 0x1A0, SLY2_OFFSETOF(MURRAY, gaitA.abl[0].animation)}, {0x300, 0x19E, SLY2_OFFSETOF(MURRAY, gaitA.abl[1].animation)}, {0x300, 0x1A2, SLY2_OFFSETOF(MURRAY, standStateMachine)},
     {0x300, 0x24E, SLY2_OFFSETOF(MURRAY, jtair.apasegJump[0])}, {0x300, 0x1A1, SLY2_OFFSETOF(MURRAY, pasegFlop)}, {0x300, 0x1A8, SLY2_OFFSETOF(MURRAY, apasegAttack[0])}, {0x300, 0x1A9, SLY2_OFFSETOF(MURRAY, apasegAttack[1])},
     {0x300, 0x1B3, SLY2_OFFSETOF(MURRAY, apasegAttack[2])}, {0x300, 0x1B2, SLY2_OFFSETOF(MURRAY, apasegAttack[3])}, {0x300, 0xC4, SLY2_OFFSETOF(MURRAY, apasegAttack[4])}, {0x300, 0x1B8, SLY2_OFFSETOF(MURRAY, pasegPowerA)},
     {0x300, 0x1B9, SLY2_OFFSETOF(MURRAY, pasegPowerB)}, {0x300, 0x1BA, SLY2_OFFSETOF(MURRAY, arcLeap.paseg)}, {0x300, 0x1BB, SLY2_OFFSETOF(MURRAY, pasegPowerEnd)}, {0x300, 0x1AF, SLY2_OFFSETOF(MURRAY, gaitD.abl[0].animation)},

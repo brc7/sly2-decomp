@@ -399,7 +399,7 @@ extern "C" int IsDetectorTargetConcealed(DETECTOR *detector, SOV *target)
         {
             bool isFacingAway = Dot(offset.q, *GetLoWorldMatrix(target)) <= 0.0f;
             bool expectFacingAway = false;
-            if (target->jtgrab.state == 0) expectFacingAway = !target->unknown1040;
+            if (target->jtgrab.state == 0) expectFacingAway = !target->isGrabReversed;
             if (isFacingAway == expectFacingAway) break;
             return 1;
         }

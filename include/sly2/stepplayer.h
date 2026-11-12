@@ -554,33 +554,33 @@ struct STEPPLAYER : public STEP
       uint grfGrabTarget;   /* +0x1000 the hero's bit (Bentley 2, Murray 4) matched against grab spots (GRABSPOT::grfUnk1c, grab.cpp)
                                and CID 0x14 hand targets (jthands.cpp) */
       undefined4 unk_0x1004[(0x1010 - 0x1004) / 4];
-      qword unknown1010;   /* possibly smoothedOffset (low-confidence guess: PosSmooth-ed toward zero each frame in air.cpp) */
+      qword smoothedPosOffset;   /* +0x1010 a position correction smoothed back to zero each frame (air.cpp, pipe_jt.cpp PosSmooth); stepplayer.cpp subtracts it (inferred) */
       float unknown1020;
-      struct TN *unknown1024;   /* possibly currentTunnel (low-confidence guess: compared with grab/attach-object tunnels (camera TN)) */
-      struct SM *unknown1028;
+      struct TN *overrideTunnel;   /* +0x1024 the camera tunnel whose override this hero holds (SetStepplayerTnOverride, Sly 1 SetActorZone) */
+      struct SM *standStateMachine;   /* +0x1028 the stand state machine (SetJtState JTS_Stand; cane.cpp / bentley.cpp look up state 0x17B in it) */
       struct SM *unknown102C;
       struct ASEGA *activeAnimation;
       struct SMA *activeStateMachine;
       int blendSide;   /* +0x1038 side of the directional blend: -1 none, 0 negative, 1 positive (dirblend.cpp; jt.cpp resets it) */
       float grabRadius;   /* +0x103C the hero's radius added to grab-spot positions (grabspot.cpp GetPole/Wall/HoldGrabspotGrabPosition) */
-      int unknown1040;   /* +0x1040 1: grab headings are turned by pi (grabspot.cpp) */
-      int unknown1044;
-      float unknown1048;   /* +0x1048 125 at init; added to the camera focus height (GetStepplayerCmFocusPos) */
+      int isGrabReversed;   /* +0x1040 1: grab headings are turned by pi (grabspot.cpp) and grab.cpp swaps its step directions; detectors expect the hero to face away when 0 (inferred) */
+      int hasScriptFocus;   /* +0x1044 1 while a job script focuses a target (relay.cpp: goalPos from GetJsgTargetPosHeading), 0 when the focus is dropped (inferred) */
+      float focusHeight;   /* +0x1048 125 at init; added to the camera focus height (GetStepplayerCmFocusPos) and to scripted goal positions (relay.cpp) */
       float unknown104C;
       float unknown1050;
       undefined4 unk_0x1054[(0x1060 - 0x1054) / 4];
-      qword unknown1060;
-      qword unknown1070;
-      float unknown1080;   /* stamped with clock.time while Murray is busy and grabbing (GetMurrayCpdefi) */
+      qword goalPos;   /* +0x1060 the scripted goal position (relay.cpp; pipe_jt.cpp GoalInputs target) (inferred) */
+      qword goalDelta;   /* +0x1070 goalPos minus the hero's position with z cleared (relay.cpp, pipe_jt.cpp) (inferred) */
+      float grabBusyTime;   /* +0x1080 clock.time while Bentley or Murray are busy grabbing (bentley.cpp, murray.cpp) (inferred) */
       struct RELAYJSG *pjsgScript;   /* +0x1084 the relay job sequence (RELAYJSG, sly2/relay.h; refcounted) scripting the hero, set by
                                    SetStepplayerRide; its prelaycmdJt is the current actor command (jtgoal.cpp, stepplayer.cpp) */
-      void *unknown1088;
+      void *targetRecord;   /* +0x1088 the hero's TARGETREC (EnsureTargetRecordById; BHVFOLLOW reads it) */
       struct WATER *pwater;   /* +0x108C the water volume the hero is in (0 when dry; UpdateStepplayerWater in hurt.cpp) */
       LOREF *alorefSplash;   /* +0x1090 objects in that water with their last splash time (UpdateStepplayerWater) */
       int clorefSplash;
       float waterProbe[4];   /* +0x1098 water-surface probe: [0]/[1] the line's bottom/top offsets above the hero (ProbeStepplayerSurface),
                                 [2] the height offset and [3] the current factor of ResolveStepplayerWaterContact */
-      SMPA unknown10A8;
+      SMPA waterHeightSmoothing;   /* +0x10A8 smoothing of the water-surface height (ProbeStepplayerSurface SmoothValueWithAccel; set up with waterProbe) */
       void *unknown10B8;
       XF *unknown10BC[2];   /* +0x10BC transforms bound by oid (the players' SNIP tables, BindLoOidTable) */
       void *hideNoise;   /* +0x10C4 the noise source TestStepplayerHidden spawns (NewNoise) to ask guards whether the hero is seen */
@@ -598,7 +598,7 @@ struct STEPPLAYER : public STEP
 
       LO *ploFightTarget;   /* fight target */
       int interactMode;    /* interaction mode */
-      int unknown10F0;
+      int canFreeLookDefault;   /* +0x10F0 initial canFreeLook (1; option 410) (inferred) */
       struct ACT *pactStartMarker;   /* +0x10F4 the position actuator that placed the hero at the start marker (AttachStepplayerToStartMarker) */
       LO *ploLean;   /* object leaned on */
       int leanKind;    /* lean kind */
@@ -614,8 +614,8 @@ struct STEPPLAYER : public STEP
       LO *pbooty;   /* +0x11A8 the booty object the player carries (SpawnStepplayerBootyMarker) */
       int isHidden;   /* +0x11AC hidden: detectors do not see the player (detector.cpp CalculateDetectorTargetState) */
       JTTHROW jtthrow;   /* carry/throw */
-      int unknown12F0;
-      int unknown12F4;
+      int canFreeLook;   /* +0x12F0 with joystick flag 2 the camera is free unless policy part3a0 is active (air / grab / pipe / Bentley / Murray) (inferred) */
+      int dialogAnimRefCount;   /* +0x12F4 dialog state-machine references taken with b != 0: 0 -> 1 plays the scripted animation, -> 0 stops it (inferred) */
       struct EMITTER *pemitterGrab;   /* grab effect emitter */
       int *gadgetPower;     /* +0x12FC [R] -> save var <char>.mpCur (gadget power) */
       int maxGadgetPower;   /* +0x1300 [R] max gadget power */
@@ -624,8 +624,8 @@ struct STEPPLAYER : public STEP
       struct ASEG *pasegGadget;   /* +0x130C the clip of the gadget being used: set from the character's gadget slots before grab state 0xB, played by stepplayer.cpp (ReplaceCurrentAseg) and cleared */
       struct ASEGA *pasegaGadgetOverlay;   /* +0x1310 [R] ASEGA of the gadget overlay animation; was pasegaUnk1310 */
       int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
-      int unknown1318;
-      float unknown131C;   /* possibly wedgedTime (low-confidence guess: set at jump start, passed to FJtAirWedged) */
+      int grabInteractKind;   /* +0x1318 the parameter of StartStepplayerGrabStateC (Sly 1 StartPrizeInteract); -1 at init (inferred) */
+      float stuckCheckTime;   /* +0x131C a time base for the stuck tests: set at jump start / by Murray, passed to FJtAirWedged and IsJtStuck (inferred) */
     virtual void AdjustXps() __asm__("AdjustStepplayerXps");   /* slot 58; key function (stepplayer.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetStepplayerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepplayerMessage");   /* slot 5 */

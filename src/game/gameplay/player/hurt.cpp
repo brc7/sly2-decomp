@@ -1239,7 +1239,7 @@ extern "C" void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
   accel.q=v;
   origin.q=GetLoWorldPos(player);
   clock=&g_clock;
-  SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->waterProbe[2],vel.f[2]-dir.f[2],pos.f[2],clock->deltaTime,&player->unknown10A8,&z);
+  SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->waterProbe[2],vel.f[2]-dir.f[2],pos.f[2],clock->deltaTime,&player->waterHeightSmoothing,&z);
   g=(z-vel.f[2])/clock->deltaTime-player->physics->gravity.z;
   accel.f[2]=accel.f[2]>g?accel.f[2]:g;
   AddSoAcceleration(player,accel.q);

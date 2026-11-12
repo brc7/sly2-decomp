@@ -2211,8 +2211,8 @@ void NextJsgCommand(RELAYJSG *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, g_normalZ, VuFloatFromMemWord(*(int *)&pstepplayer->unknown1048));
-            if (!prelaycmd->teleportTo.fAir && pstepplayer->unknown12F4 == 0)
+            pstepplayer->goalPos = QwAddScaledX(*(qword *)&pos, g_normalZ, VuFloatFromMemWord(*(int *)&pstepplayer->focusHeight));
+            if (!prelaycmd->teleportTo.fAir && pstepplayer->dialogAnimRefCount == 0)
             {
                 SetJtAirJump(&pstepplayer->jtair, 0xB, 0, 0);
                 ClearSoXps(pstepplayer);
@@ -4053,21 +4053,21 @@ extern "C" void SetRelayScriptFocus(RELAYJSG *script, void *pv)
         px = 0;
     if (script->pvFocus) {
         if (px) {
-            qword v = px->unknown1060, q, d;
-            px->unknown1044 = 0;
+            qword v = px->goalPos, q, d;
+            px->hasScriptFocus = 0;
             q = GetLoWorldPos(px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(q));
-            px->unknown1070 = d;
-            ((float *)&px->unknown1070)[2] = 0.0f;
+            px->goalDelta = d;
+            ((float *)&px->goalDelta)[2] = 0.0f;
         }
         script->pvFocus = 0;
     }
     if (!pv) return;
     if (px) {
-        px->unknown1044 = 1;
-        GetJsgTargetPosHeading(script, pv, &px->unknown1060, 0);
-        ((float *)&px->unknown1060)[2] += px->unknown1048;
-        px->unknown1070 = D_002A2DD0;
+        px->hasScriptFocus = 1;
+        GetJsgTargetPosHeading(script, pv, &px->goalPos, 0);
+        ((float *)&px->goalPos)[2] += px->focusHeight;
+        px->goalDelta = D_002A2DD0;
     }
     script->pvFocus = pv;
 }
