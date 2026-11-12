@@ -1199,7 +1199,7 @@ done:
     return ccontact;
 }
 } // namespace M_CsbiIntersectSphereBsp
-
+#ifdef SLY2_EE_ASM   /* the matched form: EE views, register pins, VU0 asm (natively: the C version at the end of the file) */
 // Hand-tuned (gcse table size, register pins, struct copies): keeps the per-function views and helpers it was
 // matched with, in a namespace of its own (see the file header).
 namespace M_MarkSoContactsSphereBsp {
@@ -1281,7 +1281,7 @@ extern "C" void MarkSoContactsSphereBsp(void *a, struct S*s,struct S*b,int d,str
                     : "=&r"(bodyArgument),"=&r"(emptyFeature),"=&r"(pointArgument),"=r"(planeArgument),"=f"(separation),"=m"(r.q)
                     : "r"(bodyOwner),"j"(product),"m"(A),"m"(B) : "$2");
             AddXp(worldArgument, shapeArgument, bodyArgument, pointArgument, planeArgument, pe->kind, emptyFeature, pe->detail.pointer, g, separation);
-            pe=(E*)((unsigned)pe-sizeof(E));
+            pe=(E*)((uptr)pe-sizeof(E));
         } while (i >= 0);
     }
 }
@@ -1301,7 +1301,7 @@ typedef char layout_OwnerPoint_Span[(sizeof(((S0*)0)->position)==16)?1:-1];
 typedef char layout_ShapeRadius_Width[(sizeof(((S*)0)->radius)==4)?1:-1];
 typedef char layout_U_FloatSpan[(sizeof(((U*)0)->f)==16)?1:-1];
 } // namespace M_MarkSoContactsSphereBsp
-
+#endif
 /* Two sphere parts (centre: the transform's position, radius `radius`): one kind-7 contact on ppart0's surface along
    the centre line (g_normalZ when the centres coincide), separation |d| - (r0 + r1). */
 // Sphere part against sphere part: if they overlap adds one contact along the line between the centres.
@@ -1636,3 +1636,24 @@ extern "C" { inline VECTOR *DefaultConstructVector(VECTOR *pvec)
     return pvec;
 } }
 } // namespace M_func_001A87F0
+
+#ifndef SLY2_EE_ASM
+/* MarkSoContactsSphereBsp without the EE views (port request 010: natively the view read the radius at the EE offset
+   +0x08 and cut the candidate pointer to 32 bits): a sphere part `ppart` (centre: its transform's position) against
+   the BSP hull of `ppartOther`; IntersectSphereBsp gives up to 64 candidates, and each becomes a contact through
+   AddXp, last candidate first, with the separation dot(point, plane.xyz) - plane.w. */
+void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp)
+{
+    CMCONTACT candidates[64];
+    int count = M_CsbiIntersectSphereBsp::CplaneFromSphere(ppart->transform->worldMatq.r[3].q, ppart->radius, ppartOther,
+                                                           (BSP *)SLY2_BSP_NO_LIMIT, cbsp, absp, 64, candidates);
+    for (int i = count - 1; i >= 0; i--)
+    {
+        CMCONTACT *pc = &candidates[i];
+        VuLanes point = VuGet(pc->pos);
+        VuLanes plane = VuGet(pc->plane);
+        float separation = (plane.x * point.x + plane.y * point.y + plane.z * point.z) - plane.w;
+        AddXp(psw, ppart, ppartOther, pc->pos, pc->plane, pc->kind, 0, pc->pv, ppxp, separation);
+    }
+}
+#endif
