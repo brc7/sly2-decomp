@@ -436,7 +436,7 @@ ThiefNet (SAFEHOUSE 0x46). The hacking classes are declared in `include/sly2/hac
 
 Smaller gameplay classes (`gameplay/objects/`): BARRIER, BOMB, MISSILE/ACCMISS (projectiles derived from BOMB), BUTTON and
 VOLBTN (fire Splice events 5/6), SENSOR and laser rigs, TARGET, breakable props (CID98, staged recorded actions),
-tossable gadget objects (CID100-102), critters (CID96), the screen tint/fade (CID116), the sky dome (SKY).
+tossable gadget objects (CID100-102), critters (CID96), the screen tint/fade (SCREENFADE, cid 116), the sky dome (SKY).
 
 ## 8. Where Sly 2 differs from Sly 1
 

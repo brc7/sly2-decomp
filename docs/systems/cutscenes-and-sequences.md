@@ -34,7 +34,7 @@ Types: `RELAY` in `include/sly2/classes.h`; the command kinds are the `RELAYCK` 
 |---|---|
 | `RELAY` | a level object holding a command array, an optional private command limit, the list of running scripts, the firer, an alarm list, the fired time and a busy mark |
 | `RELAYCMD` | one command: its kind (`RELAYCK`), an async flag and an argument block (a union selected by the kind, filled by the kind's builder) |
-| `RELAYCK` | the command kinds (`RELAYCK_` + name): blocks (begin, end, stop, wait for blocks), flow (labels, conditional and unconditional jumps, signal, wait for time), alarms (raise, wait), actors (set actor, teleport, go to, walk to, follow a path, climb a pipe, face, hero state, grab, carry and throw, respawn, launch), animation (play a clip, drive a state machine), camera (cut, blend from / to, tweens, focus, tunnel), presentation (widget show / hide, hint box, button prompt, dialogue line and subtitle, sound, music, rumble, explosion), control (hands-off, controller hand-off, clock rate, Sly's look and recon modes) and progression (task state, fire or stop a relay); several kinds are still `Unk*` |
+| `RELAYCK` | the command kinds (`RELAYCK_` + name): blocks (begin, end, stop, wait for blocks), flow (labels, conditional and unconditional jumps, signal, wait for time), alarms (raise, wait), actors (set actor, teleport, go to, walk to, follow a path, climb a pipe, face, hero state, grab, carry and throw, respawn, launch), animation (play a clip, drive a state machine), camera (cut, blend from / to, tweens, focus, tunnel), presentation (widget show / hide, hint box, button prompt, dialogue line and subtitle, sound, music, rumble, explosion), control (hands-off, controller hand-off, clock rate, Sly's look and recon modes), character set pieces (Murray's struggle, throw aim and move-to, Bentley's gadget waits and jump onto Murray, the rhythm game's sequence and cues) and progression (task state, fire or stop a relay); every kind is named after the `AddRelay*` builtin that appends it |
 | JSG (relay script) | a refcounted `BASIC` from the world's JSG slot heap, built by `NewRelayJsg`: its relay, its block's command range and current command, its parent script, the actor and context it works on, and what it holds (hands-off, camera blend, step holds, focus) |
 | `CMpeg` | the movie player: a queue of movies, the demux/decode loop over libmpeg and the IPU, the display thread, the subtitle line and the movie's audio stream |
 | frame-capture object (class id 104) | an `SO` that grabs the current frame into a texture and draws it as two moving quads (a split/flip transition) |
@@ -120,7 +120,8 @@ movies; mission sequences are relays.
   quads placed by two child objects until its animation ends. The main loop asks `IsFrameCaptureInactive` before
   rendering the world and calls `DrawFrameCaptureScreen` for the overlay ([engine.md section 4](../engine.md#4-the-frame-loop)).
 - **Letterbox** (`engine/presentation/letterbox.cpp`): `ShowLetterbox` / `HideLetterbox` animate the bars through a
-  timer widget; the world's letterbox counter (`AcquireSwLetterbox`) holds them during cutscenes.
+  timer widget; the world's letterbox counter (`SW::letterboxCount`, `AcquireSwLetterbox` / `ReleaseSwLetterbox`) holds them during
+  cutscenes.
 
 ## 7. Invariants and gotchas
 
@@ -136,7 +137,8 @@ movies; mission sequences are relays.
   commands past it go to a scratch record and are lost without an error.
 - **Movies need memory and a transition.** A queued movie plays only at the next level transition and only if enough
   memory is free; queuing one mid-level does nothing visible until then.
-- Many command kinds and argument fields are still `Unk*` or `(inferred)` in `relay.cpp`; read the builder and the
+- Many argument fields are still `nUnk*` and several command meanings are `(inferred)` in `relay.cpp` (the placeholder
+  kinds 0x1B ... 0x5A took their builders' names in v1.26); read the builder and the
   `NextJsgCommand` case together before relying on one.
 
 ## 8. How to

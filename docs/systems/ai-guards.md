@@ -55,7 +55,7 @@ animation bindings). The behaviour subclasses are still TU-private views in the 
   the behaviours on its stack** (runtime-confirmed). The flags also select animations (section 7).
 - **DETECTOR**: a guard's vision (an XFM with near and far volumes), tracking a small set of targets each with a state
   0 unseen, 1 seen, 2 lost.
-- **NOISE / NOISETYPE / LISTENER**: refcounted stimuli on the world's stimulus list, the templates that define their
+- **NOISE / NOISETYPE / LISTENER** (cids 147 / 117 / 47, classes.h; `CID147` / `CID117` / `CID47` before v1.26): refcounted stimuli on the world's stimulus list, the templates that define their
   range, height window and lifetime, and passive listener objects (section 5).
 - **Engagement record** (TARGETREC): shared per target; the guards attacking the same target join it and take turns
   (section 6).

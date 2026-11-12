@@ -334,7 +334,7 @@ Observations from the hand-written port (section 14), to check against our own d
 | **blip** (P2, kind 12) | Vertex shader over particle instances: t = now - birth, curves = coefficient vectors · (1,t,t²), flip-book lookup. The CPU only unpacks. | Per-particle maths is closed-form. |
 | **HUD** (P5, kind 21) | CPU decodes to a 2-D sprite batch; one pipeline with ortho projection. | Tiny volume (12-25 entries). |
 | **VU0 micro helpers** | CPU C++ (4.2) | Called synchronously by EE code. |
-| **GS-direct packets** (clears, frame context, BlendPrevFrame, CID116 tint, background gradient, texture uploads) | The "GS state machine" in the renderer: track A+D register writes (TEX0/1, CLAMP, TEST, ALPHA, FRAME, ZBUF, SCISSOR, FOGCOL, PRIM) and translate SPRITE/strip draws into a generic textured-quad pipeline. Handle image transfers per 6.3. | Same role as OpenGOAL's DirectRenderer (K16); not a GS emulator. |
+| **GS-direct packets** (clears, frame context, BlendPrevFrame, SCREENFADE tint, background gradient, texture uploads) | The "GS state machine" in the renderer: track A+D register writes (TEX0/1, CLAMP, TEST, ALPHA, FRAME, ZBUF, SCISSOR, FOGCOL, PRIM) and translate SPRITE/strip draws into a generic textured-quad pipeline. Handle image transfers per 6.3. | Same role as OpenGOAL's DirectRenderer (K16); not a GS emulator. |
 
 Notes:
 - **Projection**: the screen-space "magic float" viewport constants (VU1 qw 0/1) are ignored. Use `world→clip` (qw 2-5)

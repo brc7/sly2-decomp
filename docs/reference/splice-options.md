@@ -119,7 +119,7 @@ parent XFM; 41 options in all.
 | 290 | `isStatic` / `SetLightStatic` | bool | get set file | 157 |
 | 291 | `isDynamic` / `SetLightDynamic` | bool | get set file | 158 |
 
-## CID5 (cid 5)
+## VISZONE (cid 5)
 
 parent XFM; 34 options in all.
 
@@ -771,7 +771,7 @@ parent XFM; 41 options in all.
 | 946 | `+0x118` | object&lt;LO&gt; | get set file | 1063 |
 | 947 | `AddRtcamObjectShown` | object&lt;LIGHT&gt; | file | 1065 |
 
-## CID46 (cid 46)
+## RECONTARGET (cid 46)
 
 parent XFM; 46 options in all.
 
@@ -791,7 +791,7 @@ parent XFM; 46 options in all.
 | 1040 | `+0x10C` | bool | get set file | 1205 |
 | 1041 | `+0x110` | int | get set file | 1206 |
 
-## CID47 (cid 47)
+## LISTENER (cid 47)
 
 parent XFM; 33 options in all; nothing new.
 
@@ -1042,7 +1042,7 @@ parent STEP; 213 options in all.
 | 405 | `RefThunk_StepguardHasSgf` | - | method(1) | 279 |
 | 406 | `unk_0xf38` | bool | get set file | 280 |
 | 407 | `sensesEnabled` | bool | get set file | 281 |
-| 408 | `noiseType` | object&lt;CID117&gt; | get set file | 282 |
+| 408 | `noiseType` | object&lt;NOISETYPE&gt; | get set file | 282 |
 | 409 | `sleepTimeMin` | lm | get set file | 283 |
 | 410 | `unknown364` | bool | get set file | 284 |
 | 411 | `closeAngleRange` | lm | get set file | 285 |
@@ -1927,7 +1927,7 @@ parent LO; 53 options in all.
 | 881 | `entryCount` | int | get | 963 |
 | 882 | `currentEntryIndex` | int | get set | 964 |
 
-## CID116 (cid 116)
+## SCREENFADE (cid 116)
 
 parent LO; 41 options in all.
 
@@ -1942,7 +1942,7 @@ parent LO; 41 options in all.
 | 898 | `dtHold` | float | get set file | 985 |
 | 899 | `renderKind` | int | get set file | 986 |
 
-## CID117 (cid 117)
+## NOISETYPE (cid 117)
 
 parent LO; 39 options in all.
 
@@ -2048,7 +2048,7 @@ parent LO; 36 options in all.
 | 1231 | `kind` | int | get set file | 1446 |
 | 1232 | `AddPathlinkEndpointPos` | vector | file | 1448 |
 
-## CID125 (cid 125)
+## GUARDMGR (cid 125)
 
 parent LO; 33 options in all; nothing new.
 
@@ -2346,7 +2346,7 @@ parent BASIC; 13 options in all; nothing new.
 
 parent BASIC; 13 options in all; nothing new.
 
-## CID147 (cid 147)
+## NOISE (cid 147)
 
 parent BASIC; 19 options in all.
 
@@ -2356,7 +2356,7 @@ parent BASIC; 19 options in all.
 | 237 | `RefThunk_RemoveNoise` | - | method(0) | 1100 |
 | 255 | `IsNoiseRemoved` | bool | get | 1101 |
 | 957 | `level` | int | get set | 1099 |
-| 958 | `type` | object&lt;CID117&gt; | get | 1096 |
+| 958 | `type` | object&lt;NOISETYPE&gt; | get | 1096 |
 | 959 | `startPosition` | vector | get set | 1098 |
 
 ## CID148 (cid 148)

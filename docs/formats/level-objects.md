@@ -74,12 +74,12 @@ the first one. RELAY command lists arrive this way.
 
 | Class (cid) | Loader | Payload | Tag |
 |---|---|---|---|
-| LO base: LO 0x02, CID112 0x70 (aim manager), CID113 0x71 (guard script), WR 0x73, CID116 0x74, CID117 0x75, CID120 0x78, PATHLINK 0x7C, CID121 0x79 | `LoadLoFromBrx` | options | [C:parse] |
+| LO base: LO 0x02, CID112 0x70 (aim manager), CID113 0x71 (guard script), WR 0x73, SCREENFADE 0x74, NOISETYPE 0x75, CID120 0x78, PATHLINK 0x7C, CID121 0x79 | `LoadLoFromBrx` | options | [C:parse] |
 | RELAY 0x72; CID119 0x77; route CID123 0x7B | `LoadRelayFromBrx` / `LoadSpawnerFromBrx` / `LoadRouteFromBrx` | = LoadLoFromBrx (relay commands arrive via METHOD options; route copies its points to the heap) | [C:parse] |
 | XFM base: XFM 0x03, LIGHT 0x04, TARGET 0x12, 0x13-0x15, 0x23-0x25, 0x27, 0x2C, CID43 0x2B, CID45 0x2D, recon target 0x2E, 0x10, 0x28, 0x2F | `LoadXfmFromBrx` | XF part; options | [C:parse] |
 | PROXY 0x06, CLUEPROXY 0x07 | `LoadProxyFromBrx` (instead of slot 14) | `S32 idSource; S8 mode; S16 ixf; MATRIX4; U32 grfvis; U8 cinit; cinit x {S32 kind (5/6 = the copy's first object, else an oid); S16 cid; S16 isplice; U16 cb; cb bytes options}; S32 cbList; nested object list` (cbList includes its S16 count; 5,979/5,979 init blocks parse exactly) | [C:parse] |
 | SHAPE 0x0A, PIPE 0x0B, CID12 0x0C, RAIL 0x0D, CID14 0x0E | `LoadShapeFromBrx` (CID14: `LoadCid14FromBrx`) | XF part; S8 fTangents; S8 n; U16 c; c x 4 B; c x VECTOR; [fTangents: 2 x c x VECTOR]; options (spline control points `[H]`) | [C:parse] |
-| CID5 0x05 (vis zone, `*_vz`) | `LoadVisFromBrx` | XF part; U32; GEOM; TREE; options | [C:parse] |
+| VISZONE 0x05 (vis zone, `*_vz`) | `LoadVisFromBrx` | XF part; U32; GEOM; TREE; options | [C:parse] |
 | CID8/9 0x08/0x09 | `LoadCid8FromBrx` | XF part; S16 cv; cv x VECTOR; S16 cx; 2 x cx x 3 x S16; options | [C:parse] |
 | TN 0x0F | `LoadTnFromBrx` | XF part; GEOM; TREE; options; nested list (`LoadXfmChildObjectsFromBrx`) | [C:parse] |
 | PATHZONE 0x11 | `LoadPathzoneFromBrx` | XFM; U16 cpt; U16 ctri; cpt x {VECTOR; U8 c; c x U16 neighbour}; ctri x 3 x U16; U16 c3; c3 x {3 x F32, U16, U16} (navigation mesh `[H]`) | [C:parse] |

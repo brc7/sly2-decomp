@@ -121,9 +121,10 @@ Why the matching form cannot be the portable one:
   `sizeof(class)` (CloneSaa copies `instanceSize` bytes).
 - **vptr stores**: constructors written as C functions (for asm labels, views or call order) store the vtable
   themselves; g++ 2.95 puts the vptr after the first base's data, the Itanium ABI first.
-- **LO's tagged update word** (LO+0x40, `unknown40` / `ploupd`): either an LOUPD pointer or the flags with bit 0 set.
+- **LO's tagged update word** (LO+0x40, `inlineFlags` / `ploupd`; `inlineFlags` was `unknown40` before v1.26): either
+  an LOUPD pointer or the flags with bit 0 set.
   Readers take it as `uptr` (or `sptr` where the matched local was `int`) through `LO::ploupd` and write the flags
-  through `LOUPD::grf` or `LO::unknown40`; LO's own `int unknown40` stays (making it unsigned would change sign
+  through `LOUPD::grf` or `LO::inlineFlags`; LO's own `int inlineFlags` stays (making it unsigned would change sign
   extensions elsewhere). On a little-endian host the low word holds the tag. lo.h includes sly2/port.h and defines
   LOUPD (sw.h has the same definition under the same guard). v1.15 rewrote every remaining `int v = x->unknown40;
   ... *(int *)v` copy (tools: a scratch rewriter, line-local); left: so.cpp SetSoGrfBit8 (register-pinned asm).
@@ -483,7 +484,8 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   on every target, but the bit-field signedness differs: `KIND kind : 4; long channels : 8; long sort : 6; ulong index
   : 13` against `long nKind; ulong nCount; ulong nChannel; long iglob`, and each TU's code depends on its own; the
   8-bit field is the render-channel mask InsertRenderEntry stores, so POSE::nCount is probably misnamed); CID46's field
-  names are recon.cpp's (sRadius, fDone... not yet in the approved style); hud.cpp FinishSpriteSoundEvent's `lw
+  names are recon.cpp's (sRadius, fDone... not yet in the approved style; done in v1.26: the class is RECONTARGET and
+  the fields selectionRadius, visibilityRadius, isDone, fadeDistance); hud.cpp FinishSpriteSoundEvent's `lw
   %0,8(%1)`; the struct-return forms and guardscript.cpp / splicewrap items above.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
