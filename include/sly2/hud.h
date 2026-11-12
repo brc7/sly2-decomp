@@ -166,8 +166,8 @@ struct SPRITEDESC
     };
 };
 #if defined(SLY2_EE_LAYOUT)
-typedef char assert_SPRITEDESC_size[sizeof(SPRITEDESC) == 0x40 ? 1 : -1];
-typedef char assert_SPRITEDESC_picture[SLY2_OFFSETOF(SPRITEDESC, picture.texPacket) == 0x20 ? 1 : -1];
+typedef char assert_SPRITEDESC_size[SLY2_EE_CHECK(sizeof(SPRITEDESC) == 0x40) ? 1 : -1];
+typedef char assert_SPRITEDESC_picture[SLY2_EE_CHECK(SLY2_OFFSETOF(SPRITEDESC, picture.texPacket) == 0x20) ? 1 : -1];
 #endif
 
 /* A sprite item (0x70 bytes): one sprite placed by a slot's current key: its colours, 2-D pose, descriptor, the slot

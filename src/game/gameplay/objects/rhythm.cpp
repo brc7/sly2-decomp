@@ -54,7 +54,7 @@ void *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *p);
 void InitLo(RHYTHMMGR *p);
 void SetLoBusyKind(RHYTHMMGR *p, int n);
 void PostLoLoad(RHYTHMMGR *p);
-void PostSwCallback(SW *psw, RHYTHMMGR *p, long k, int n);
+void PostSwCallback(SW *psw, RHYTHMMGR *p, long k, sptr n);
 void ReplaceSma(void *o2, void *o, int k, int n, void **ppo);
 float RandomFloatInRange__Fff(float a, float b);
 void UpdateLo(RHYTHMMGR *);

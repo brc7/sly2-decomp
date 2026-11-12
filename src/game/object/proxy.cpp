@@ -594,7 +594,7 @@ extern "C" void AcquireProxy(PROXY *proxy)
 extern "C" {
 extern const LONGU D_002A77C0;
 void OnLoAdd(LO *plo);
-void EnsureSwCallback(SW *world, LO *plo, long cb, int n);
+void EnsureSwCallback(SW *world, LO *plo, long cb, sptr n);
 }
 // Proxy add hook: the LO add, then register the proxy's world callback unless its flag at +0xE4 is set.
 extern "C" void OnProxyAdd(PROXY *proxy)

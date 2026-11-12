@@ -260,7 +260,7 @@ struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct ALLOCREQ { int cb; int kind; };
 extern const struct LONGU D_002A5140 __asm__("D_002A5140");
 extern float D_002A5148 __asm__("D_002A5148");
-void PostSwCallback(void *pg, EMITTER *p, long k, int n) __asm__("PostSwCallback");
+void PostSwCallback(void *pg, EMITTER *p, long k, sptr n) __asm__("PostSwCallback");
 float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
 void PauseEmitterIndefinite__FP7EMITTER(EMITTER *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void PauseEmitter__FP7EMITTERf(EMITTER *p, float g) __asm__("PauseEmitter__FP7EMITTERf");

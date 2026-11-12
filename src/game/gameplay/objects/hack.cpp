@@ -200,7 +200,7 @@ extern "C" int IsHackAnimDone(HACK *hack) { if (hack->pasega) return IsAsegaRetr
 
 namespace M_func_0017F5B0 {
 extern const struct LONGU D_002A5630 __asm__("D_002A5630");
-void PostSwCallback(SW *g, void *p, long k, int n) __asm__("PostSwCallback");
+void PostSwCallback(SW *g, void *p, long k, sptr n) __asm__("PostSwCallback");
 // Once: set the dying flag and post the Kill callback (D_002A5630: a pointer to HACK's slot 82) with n. (inferred)
 // Also known as: PostKillHackSo (upstream readable / Sly 1 name; PostKillHackSo__FP2LOi).
 extern "C" void StartHackDying(HACK *hack, int n) { if (hack->fDying) return; hack->fDying = 1; PostSwCallback(&g_sw, hack, D_002A5630.l, n); }
@@ -233,7 +233,7 @@ extern "C" void KillHack(HACK *hack, LO *ploKiller) {
 
 namespace M_func_0017F6B0 {
 extern const struct LONGU D_002A5638 __asm__("D_002A5638");
-void ClearSwCallbacks(SW *g, int a, void *p, long k, int n) __asm__("ClearSwCallbacks");
+void ClearSwCallbacks(SW *g, int a, void *p, long k, sptr n) __asm__("ClearSwCallbacks");
 // Health = max; cancel a pending dying callback (ClearSwCallbacks D_002A5638). (inferred)
 // Also known as: ResetHackSoBase (upstream readable / Sly 1 name; ResetHackSoBase__FP2LO).
 extern "C" void ResetHack(HACK *hack) { hack->cHealth = hack->cHealthMax; if (hack->fDying) ClearSwCallbacks(&g_sw, 1, hack, D_002A5638.l, 0); }

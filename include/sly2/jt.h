@@ -260,8 +260,8 @@ struct JT : public STEPPLAYER
     virtual void IsCameraFree() __asm__("IsJtCameraFree");   /* slot 106: named from its overrides (inferred) */
     virtual void AddAttachedObjectAccelerations() __asm__("AddJtExternalAccelerations");   /* slot 107: named from its overrides (inferred) */
 };
-typedef char assert_JT_reconSel[SLY2_OFFSETOF(JT, reconSel) == 0x1D40 ? 1 : -1];
-typedef char assert_JT_abldirMesh[SLY2_OFFSETOF(JT, abldirMesh) == 0x1E10 ? 1 : -1];
+typedef char assert_JT_reconSel[SLY2_EE_CHECK(SLY2_OFFSETOF(JT, reconSel) == 0x1D40) ? 1 : -1];
+typedef char assert_JT_abldirMesh[SLY2_EE_CHECK(SLY2_OFFSETOF(JT, abldirMesh) == 0x1E10) ? 1 : -1];
 typedef char assert_JT_size[sizeof(JT) == 0x2060 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_JT_state[SLY2_OFFSETOF(JT, state) == 0x18C8 ? 1 : -1]; /* 0 standing / 11 pickpocket (CONFIRMED runtime) */
 typedef char assert_JT_bodyState[SLY2_OFFSETOF(JT, bodyState) == 0x18D0 ? 1 : -1]; /* -1 in all states (CONFIRMED runtime) */
@@ -271,7 +271,7 @@ typedef char assert_JT_attachedTo[SLY2_OFFSETOF(JT, attachedTo) == 0x18C0 ? 1 : 
 typedef char assert_JT_hangForce[SLY2_OFFSETOF(JT, janim.hangForce) == 0x1910 ? 1 : -1];
 typedef char assert_JT_aposMeshProbe[SLY2_OFFSETOF(JT, aposMeshProbe) == 0x1F30 ? 1 : -1];
 typedef char assert_JT_ablSweep[SLY2_OFFSETOF(JT, ablSweep[3].pasegbl) == 0x1A70 ? 1 : -1];
-typedef char assert_JT_isStandSmSnapped[SLY2_OFFSETOF(JT, isStandSmSnapped) == 0x1514 ? 1 : -1]; /* jt.cpp, air.cpp SetJtAirState */
+typedef char assert_JT_isStandSmSnapped[SLY2_EE_CHECK(SLY2_OFFSETOF(JT, isStandSmSnapped) == 0x1514) ? 1 : -1]; /* jt.cpp, air.cpp SetJtAirState */
 typedef char assert_JT_unknown1D28[SLY2_OFFSETOF(JT, unknown1D28) == 0x1D28 ? 1 : -1];   /* air.cpp SetJtAirState (SetSmaGoal) */
 typedef char assert_JT_pactHand[SLY2_OFFSETOF(JT, pactHand) == 0x1A00 ? 1 : -1];
 typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */ typedef char assert_JT_abldirJts5[SLY2_OFFSETOF(JT, abldirJts5) == 0x13D0 ? 1 : -1]; typedef char assert_JT_abldirJts10[SLY2_OFFSETOF(JT, abldirJts10) == 0x1AC0 ? 1 : -1]; typedef char assert_JT_ablHangFollow[SLY2_OFFSETOF(JT, ablHangFollow) == 0x1F60 ? 1 : -1]; typedef char assert_JT_pasegblLean[SLY2_OFFSETOF(JT, pasegblLean) == 0x2038 ? 1 : -1];

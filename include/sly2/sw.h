@@ -11,7 +11,7 @@
 #define SLY2_SW_H
 #include "sly2/basic.h"
 #include "sly2/slotheap.h"
-
+#include "sly2/port.h"   /* sptr, SLY2_EE_CHECK */
 /* JTGRABCAND: a candidate grab spot gathered for the hero this frame (GatherJtGrabCandidates), scored by distance and
    priority.
    Layout from src/game/gameplay/player/grab/AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND.cpp (8 copies in Lilly ports) */
@@ -178,15 +178,15 @@ struct CObj
 {
     virtual void Dummy();
 };
-typedef void (CObj::*PMFCB)(int);
+typedef void (CObj::*PMFCB)(sptr);
 struct SWCALLBACK
 {
     CObj *object;
     PMFCB method;
-    int argument;
+    sptr argument;             /* an int, or an object (bomb, robottank, jthands pass pointers): pointer-sized */
     SWCALLBACK *next;
 };
-typedef char assert_SWCALLBACK_size[sizeof(SWCALLBACK) == 0x14 ? 1 : -1];
+typedef char assert_SWCALLBACK_size[SLY2_EE_CHECK(sizeof(SWCALLBACK) == 0x14) ? 1 : -1];
 
 /* DIRE / DIRBL: a directional animation set (SW::slotheapDiract, AllocDirAnim; 0xD0 bytes on the EE): four
    animations with their root velocity and speed, chosen by direction (gait.cpp InitDirAnims / the selector;

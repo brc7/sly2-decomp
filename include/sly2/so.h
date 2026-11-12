@@ -321,7 +321,7 @@ typedef char assert_SO_size[sizeof(SO) == 0x150 ? 1 : -1];   /* class descriptor
 typedef char assert_SO_rootTransform[SLY2_OFFSETOF(SO, rootTransform) == 0x60 ? 1 : -1]; /* position = rootTransform->worldMatrix row 3 (CONFIRMED runtime) */
 typedef char assert_SO_children[SLY2_OFFSETOF(SO, children) == 0x64 ? 1 : -1]; /* child DL at SO+0x64 (CONFIRMED runtime) */
 typedef char assert_SO_dhpHit[SLY2_OFFSETOF(SO, dhpTouch) == 0x149 ? 1 : -1];
-typedef char assert_SO_boundsScale[SLY2_OFFSETOF(SO, boundsScale) == 0x13C ? 1 : -1]; /* holds 400.0f (CONFIRMED runtime) */ typedef char assert_SO_prender[SLY2_OFFSETOF(SO, prender) == 0x144 ? 1 : -1];
+typedef char assert_SO_boundsScale[SLY2_EE_CHECK(SLY2_OFFSETOF(SO, boundsScale) == 0x13C) ? 1 : -1]; /* holds 400.0f (CONFIRMED runtime) */ typedef char assert_SO_prender[SLY2_OFFSETOF(SO, prender) == 0x144 ? 1 : -1];
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md

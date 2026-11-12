@@ -223,7 +223,7 @@ ASEGA *ApplyAsegToObject(ASEG *paseg, ALO *palo, int grf, float t, float svt);
 CHN *FindAsegChannel(ASEG *paseg, ALO *palo, int n, int f);
 void OnSoContactFreed(void);
 void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
-void EnsureSwCallback(SW *psw, LASENV *plasen, PFNLASEN pfn, int n);
+void EnsureSwCallback(SW *psw, LASENV *plasen, PFNLASEN pfn, sptr n);
 void AddSoCustomXps(SOV *pso, REQUEST *preq, int a2, int a3, int a4, XP **ppxp);
 int ClipEdgeToObject(REQUEST *preq, qword posA, qword posB, int n, HIT *phit);
 int IntersectStepFootprint(void *pso, qword posA, qword posB, qword *ppos);

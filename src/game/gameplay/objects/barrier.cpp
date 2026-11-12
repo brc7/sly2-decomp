@@ -33,7 +33,7 @@ void RefreshSwObjectCollisionFilter(void *psw, BARRIER *pso);
 int HasLoOid(void *plo, int oid);
 int ShouldSoIgnoreIntersection(BARRIER *pso, void *psoOther);
 void AdjustSoNewXp(BARRIER *pso);
-void EnsureSwCallback(void *psw, void *pv, long k, int n);
+void EnsureSwCallback(void *psw, void *pv, long k, sptr n);
 }
 int IsBasicDerivedFrom(struct BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 extern "C" void *FindBindingPtr__6CFrameUii(void *pframe, int a, int b);

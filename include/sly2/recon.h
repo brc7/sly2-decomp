@@ -35,7 +35,7 @@ struct RECONSEL
     int pending;            /* +0xC0 */
 };
 #if defined(SLY2_EE_LAYOUT)
-typedef char assert_RECONSEL_size[sizeof(RECONSEL) == 0xD0 ? 1 : -1];
+typedef char assert_RECONSEL_size[SLY2_EE_CHECK(sizeof(RECONSEL) == 0xD0) ? 1 : -1];
 #endif
 
 #endif /* SLY2_RECON_H */

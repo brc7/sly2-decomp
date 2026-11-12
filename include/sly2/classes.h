@@ -740,7 +740,7 @@ struct RHYTHMMGR : LO
     virtual void Update() __asm__("UpdateRhythmMgr");   /* slot 16 */
     virtual void RenderSelf() __asm__("DrawRhythmMgr");   /* slot 19 */
 };
-typedef char assert_RHYTHMMGR_size[sizeof(RHYTHMMGR) == 0x10B0 ? 1 : -1]; typedef char assert_RHYTHMMGR_grades[SLY2_OFFSETOF(RHYTHMMGR, grades) == 0x2AC ? 1 : -1];
+typedef char assert_RHYTHMMGR_size[SLY2_EE_CHECK(sizeof(RHYTHMMGR) == 0x10B0) ? 1 : -1]; typedef char assert_RHYTHMMGR_grades[SLY2_EE_CHECK(SLY2_OFFSETOF(RHYTHMMGR, grades) == 0x2AC) ? 1 : -1];
 
 /* 122 CID122 (0x60): ? (LoadFromBrx with FILEREC list); vtable 0x2CDA10, 48 slots */
 struct CID122 : LO

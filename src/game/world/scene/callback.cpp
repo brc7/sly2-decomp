@@ -37,14 +37,14 @@ void ClearSl(SL *list);
 int IsSlEmpty(SL *list);
 void RemoveSlEntry(SL *list, void *pv);
 void EvalSpliceEventCallback(void *pv, CPair *ppair, CFrame *pframe, int n);
-void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg);
+void PostSwCallback(SW *world, CObj *object, PMFCB method, sptr arg);
 }
 
 // Queues a deferred callback {object, member function, argument} on the world (node from the world's pool); it runs
 // once in ProcessSwCallbacks.
 // Also known as: PostDeferredPointerCall (upstream readable / Sly 1 name;
 //   PostDeferredPointerCall__FPvUi22PFNDEFERREDPOINTERCALLi).
-extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
+extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, sptr arg)
 {
     SWCALLBACK *callback = (SWCALLBACK *)AllocZeroedFromSlotheap(&world->slotheapCallback);
     callback->object = object;
@@ -55,7 +55,7 @@ extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 
 // Queues the callback unless an identical {object, member function, argument} is already queued.
 // Also known as: PostDeferredCall (upstream readable / Sly 1 name; PostDeferredCall__FPvUi15PFNDEFERREDCALLi).
-extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, int arg)
+extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, sptr arg)
 {
     SWCALLBACK *callback;
     for (callback = (SWCALLBACK *)world->slCallback.head; callback; callback = callback->next)
@@ -68,7 +68,7 @@ extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 
 // Removes the queued callbacks that match the selected fields (flag 1 object, 2 member function, 4 argument).
 // Also known as: CancelDeferredCalls (upstream readable / Sly 1 name; CancelDeferredCalls__FPvUiiii).
-extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *object, PMFCB method, int arg)
+extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *object, PMFCB method, sptr arg)
 {
     SWCALLBACK **link = (SWCALLBACK **)&world->slCallback.head;
     SWCALLBACK *callback;

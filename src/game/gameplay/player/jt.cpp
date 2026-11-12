@@ -4427,7 +4427,7 @@ extern "C" void UpdateAllGuardsPickpocket(void)
 namespace M_func_0018E3A0 {
 extern const LONGU D_002A5F98 __asm__("D_002A5F98");
 void OnStepplayerActive(void *p) __asm__("OnStepplayerActive");
-void EnsureSwCallback(void *, void *, long, int) __asm__("EnsureSwCallback");
+void EnsureSwCallback(void *, void *, long, sptr) __asm__("EnsureSwCallback");
 // JT slot 78 (becomes active): STEPPLAYER base, then registers the guard pickpocket callback.
 extern "C" void OnJtActive(void *p)
 {

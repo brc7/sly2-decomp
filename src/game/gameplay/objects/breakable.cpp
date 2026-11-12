@@ -57,7 +57,7 @@ void OnSoAdd(TRIG *p);
 void RemoveDlEntry__FP2DLPv(void *pdl, void *pv);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-void EnsureSwCallback(SW *, TRIG *, PMF, int);
+void EnsureSwCallback(SW *, TRIG *, PMF, sptr);
 SOX *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int v, TRIG *p);
 void ShowSoGlobsById(TRIG *p, int v);
 void HideSoGlobsById(TRIG *p, int v);

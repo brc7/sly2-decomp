@@ -158,7 +158,7 @@ void SetSoMass(STEPPLAYER *, float) __asm__("SetSoMass");
 qword GetLoWorldPos(STEPPLAYER *) __asm__("GetLoWorldPos");
 struct MATRIX3Q *GetLoWorldMatrix(STEPPLAYER *) __asm__("GetLoWorldMatrix");
 void *func_002333B4(void *, int, int) __asm__("memset");
-void PostSwCallback(SW *, STEPPLAYER *, long, int) __asm__("PostSwCallback");
+void PostSwCallback(SW *, STEPPLAYER *, long, sptr) __asm__("PostSwCallback");
 
 // STEPPLAYER post-load (slot 15): STEP base, then each component's post-load, hp/mp binding and gadget slots.
 // Also known as: PostLoadActorParts (upstream readable / Sly 1 name; PostLoadActorParts__FP5ACTOR).

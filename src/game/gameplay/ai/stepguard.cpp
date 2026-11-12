@@ -286,7 +286,7 @@ void ResolveStepguardAnimBindings(STEPGUARD *guard);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void InitStuckWatch(void *pv, STEPGUARD *guard);
 void InitHazardWatch(void *pv, STEPGUARD *guard);
-void PostSwCallback(void *g, STEPGUARD *guard, long k, int n);
+void PostSwCallback(void *g, STEPGUARD *guard, long k, sptr n);
 void AddGuardScriptGoto(LO *po, int a, int b, float f);
 void *FindSoXf(STEPGUARD *root, int oid, int b);
 }

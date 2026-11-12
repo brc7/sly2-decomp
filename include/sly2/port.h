@@ -25,6 +25,12 @@
  *                   way, so both spellings call the same code and the label is `ee`; a native ABI does not (arm64
  *                   passes a struct result's address in x8, not x0), so natively the declaration binds to `native`,
  *                   an adapter with its own spelling (defined next to the function, outside SLY2_EE_LAYOUT).
+ *   SLY2_EE_CHECK(cond)
+ *                   a layout assert's condition that states an EE offset or size (`typedef char assert_X[SLY2_EE_CHECK(
+ *                   SLY2_OFFSETOF(T, m) == 0x10C) ? 1 : -1]`): the condition on the EE, true natively, so a new EE
+ *                   assert does not stop a native build (v1.30; the older asserts are neutralised by the port's own
+ *                   generated list). Relations that hold on every target (one view's offset equal to its class's)
+ *                   stay plain.
  *   SLY2_BSP_NO_LIMIT
  *                   the node-address limit a BSP walk is given when it has none (ClipSegmentBsp, PruneBspBySphere,
  *                   FindBspLeafContainingPoint[Fast], IntersectSphereBsp...: a child at or past the limit counts as
@@ -100,6 +106,11 @@ static inline float Sly2EeFmul(float a, float b)
 #define SLY2_SRET_LABEL(ee, native) __asm__(ee)
 #else
 #define SLY2_SRET_LABEL(ee, native) __asm__(native)
+#endif
+#if defined(SLY2_EE_LAYOUT)
+#define SLY2_EE_CHECK(cond) (cond)
+#else
+#define SLY2_EE_CHECK(cond) 1
 #endif
 
 #endif /* SLY2_PORT_H */

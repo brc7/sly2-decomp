@@ -78,7 +78,7 @@ void PostSoLoad(BUTTON *pbutton);
 void CloneSo(BUTTON *pbutton, BUTTON *pbuttonBase);
 void UpdateSo(BUTTON *pbutton, float dt);
 void RemoveSoHierarchy(BUTTON *pbutton);
-void EnsureSwCallback(SW *psw, void *pv, long k, int n);
+void EnsureSwCallback(SW *psw, void *pv, long k, sptr n);
 void *CanSoTakeDamage(BUTTON *pbutton, ZPR *pzpr);
 void InitXfm(VOLBTN *pvolbtn);
 void SetLoBusyKind(VOLBTN *pvolbtn, int busyk);

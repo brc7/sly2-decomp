@@ -125,7 +125,7 @@ void RenderLoAtMatrix(BOOTYV *, M4 *, float, float);
 void HandleBasicMessage(BOOTYV *, int, MATCH *);
 int ShouldSoIgnoreIntersection(BOOTYV *, struct XPM *);
 void AdjustSoNewXp(BOOTYV *, struct XPE *, int);
-void EnsureSwCallback(SW *, void *, long, int);
+void EnsureSwCallback(SW *, void *, long, sptr);
 int CanSoTakeDamage(BOOTYV *, void *);
 int IsLoInWorld(CID37V *);
 void UnlockProxyObject(void *pv, BOOTYV *p);

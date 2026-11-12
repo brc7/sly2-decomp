@@ -729,7 +729,7 @@ typedef char assert_STEPPLAYER_jtair_fCanDoubleJump[SLY2_OFFSETOF(STEPPLAYER, jt
 typedef char assert_STEPPLAYER_jtgrab_nState[SLY2_OFFSETOF(STEPPLAYER, jtgrab.state) == 0x4C8 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtgrab_plo[SLY2_OFFSETOF(STEPPLAYER, jtgrab.grabbedObject) == 0x4D4 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtplaces_cplace[SLY2_OFFSETOF(STEPPLAYER, jtplaces.cplace) == 0x9E4 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_JTHURT_flinchAsega[SLY2_OFFSETOF(JTHURT, flinchAsega) == 0x10C ? 1 : -1];
+typedef char assert_JTHURT_flinchAsega[SLY2_EE_CHECK(SLY2_OFFSETOF(JTHURT, flinchAsega) == 0x10C) ? 1 : -1];
 typedef char assert_STEPPLAYER_jthurt_nState[SLY2_OFFSETOF(STEPPLAYER, jthurt.state) == 0xDF4 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jthurt_zpr_zpk[SLY2_OFFSETOF(STEPPLAYER, jthurt.zpr.zpk) == 0xE2C ? 1 : -1];   /* last zap kind, CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtmode_nKind[SLY2_OFFSETOF(STEPPLAYER, jtmode.kind) == 0xF20 ? 1 : -1];    /* CONFIRMED runtime */

@@ -534,7 +534,7 @@ void AddSoParts(SO *) __asm__("AddSoParts");
 qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
 void *FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
 void SetSoPhysRegion(SO *, void *) __asm__("SetSoPhysRegion");
-void PostSwCallback(SW *, SO *, long, int) __asm__("PostSwCallback");
+void PostSwCallback(SW *, SO *, long, sptr) __asm__("PostSwCallback");
 // Slot 11 (AddHierarchy): AddLoHierarchy, adds the parts, sets flags 0x14, registers the physics region (if the
 // object has a region record) and recurses into the children.
 // Also known as: OnSoAdd (upstream readable / Sly 1 name; OnSoAdd__FP2SO).
@@ -570,7 +570,7 @@ struct K { long l; } __attribute__((packed));
 extern const struct K D_002A8270 __asm__("D_002A8270");
 void RemoveLoHierarchy(SO *) __asm__("RemoveLoHierarchy");
 void RemoveSoParts(SO *) __asm__("RemoveSoParts");
-void ClearSwCallbacks(SW *, int, SO *, long, int) __asm__("ClearSwCallbacks");
+void ClearSwCallbacks(SW *, int, SO *, long, sptr) __asm__("ClearSwCallbacks");
 void SetSoPhysRegion(SO *, int) __asm__("SetSoPhysRegion");
 // Slot 12 (RemoveHierarchy): RemoveLoHierarchy, removes the parts, resets the fade, unregisters the region callback
 // and recurses into the children.
@@ -1800,7 +1800,7 @@ struct S8;
 typedef unsigned long ulong;
 struct S8 { long l; } __attribute__((packed));
 extern const struct S8 D_002A8278 __asm__("D_002A8278");
-void EnsureSwCallback(SW *, SO *, long, int) __asm__("EnsureSwCallback");
+void EnsureSwCallback(SW *, SO *, long, sptr) __asm__("EnsureSwCallback");
 // Slot 58 (contact adjustment after marking): when the tree has touch flags, schedules the touch-zap callback
 // (HandleSoTouchZaps). (inferred)
 extern "C" void AdjustSoXps(SO *so)
