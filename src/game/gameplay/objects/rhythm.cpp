@@ -60,7 +60,7 @@ float RandomFloatInRange__Fff(float a, float b);
 void UpdateLo(RHYTHMMGR *);
 float GetMusicTime(void *);
 void BroadcastGameEvent(void *, int, RHYTHMMGR *);
-float SmoothValue__FfffP3SMPPf(void *, float, float, float, int);
+float SmoothValue__FfffP3SMPPf(float, float, float, SMP *, float *);
 int IsSmaRetracted(void *o);
 void SetSmaGoal(void *o, int n);
 void IncrementSwHandsOff(SW *psw, int n);
@@ -408,7 +408,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
     }
     {
         float dt = g_clock.deltaTime;
-        manager->smoothedScore = SmoothValue__FfffP3SMPPf(manager->smoothing, manager->smoothedScore, manager->averageScore, dt, 0);
+        manager->smoothedScore = SmoothValue__FfffP3SMPPf(manager->smoothedScore, manager->averageScore, dt, &manager->smoothingParams, 0);
     }
     UpdateRhythmManagerGrades(manager);
 }

@@ -598,7 +598,7 @@ void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float
 void SetBhvBusy(BHV169 *behavior) __asm__("SetBhvBusy");
 void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard) __asm__("ReleaseAnimBinding");
 void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard) __asm__("ResolveAnimBinding");
-void func_001E0020(void *sgg, int alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
+void func_001E0020(SGG *sgg, struct ALARM *alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 void ClearPointerPair(void *goal) __asm__("ClearPointerPair");
 
 }
@@ -753,7 +753,7 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
         }
         break;
     case SSGK_RELAY_ALARM:
-        func_001E0020(FindBhvScriptTarget(behavior, command->id), command->n);
+        func_001E0020((SGG *)FindBhvScriptTarget(behavior, command->id), command->palarm);
         break;
     }
     behavior->commandStartTime = g_clock.time;

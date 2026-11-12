@@ -61,6 +61,7 @@ struct SSGE
                         int n;
                         float g;
                         qword *ppos;
+                        struct ALARM *palarm;   /* SSGK_RELAY_ALARM: the alarm the relay's guard group takes (EnsureSggAlarm) */
                   };
                   union     /* +0x0C kind 6: an oid for the patrol path's second target; kinds 3/7: a heading */
                   {

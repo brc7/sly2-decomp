@@ -60,7 +60,7 @@ EMITB *AllocCopyFromWorldHeap(SWALLOC *, EMITB *);
 void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(CRefData *p);
-void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *p, int a, int b, int c);
+void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *p, STEPPLAYER *player, int candidateCount, struct JTGRABCAND *candidates);
 qword GetLoWorldPos(PO *);
 int FindBhvInBhvstk(void *p, int n);
 

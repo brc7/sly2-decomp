@@ -626,23 +626,22 @@ extern "C" int ShouldHackbulletIgnoreIntersection(HACKBULLET *bullet, SO *psoOth
 } // namespace M_func_001803A8
 
 namespace M_func_001803E0 {
-struct E { int a; int b; int x8; int xc; char p0[8]; float g18; char pad[0x24]; };   /* an XP contact side (0x40) */
-void AdjustHackNewXp(HACK *hack, struct E *ae, int i) __asm__("AdjustHackNewXp");
-int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void AdjustHackNewXp(HACK *hack, XP *pxp, int ixpd) __asm__("AdjustHackNewXp");
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *object, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void StartHackDying(HACK *hack, int n) __asm__("StartHackDying");
 // vtable slot 55: HACK's AdjustNewXp, then start dying on contact (with a hack object, or with anything unless it
 // bounces); a bouncing bullet gets elasticity 1. (inferred)
 // Also known as: OnPieceXpNew (upstream readable / Sly 1 name; OnPieceXpNew__FP3ALOP2XPi).
-extern "C" void AdjustHackbulletNewXp(HACKBULLET *bullet, struct E *ae, int i)
+extern "C" void AdjustHackbulletNewXp(HACKBULLET *bullet, XP *pxp, int i)
 {
-    struct E *pe;
-    int oid;
-    AdjustHackNewXp(bullet, ae, i);
-    pe = &ae[1 - i];
-    oid = pe->xc;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47) || !bullet->fBounce)
-        StartHackDying(bullet, oid);
-    if (bullet->fBounce) ae[2].g18 = 1.0f;
+    XPS *other;
+    SO *object;
+    AdjustHackNewXp(bullet, pxp, i);
+    other = &pxp->axps[1 - i];
+    object = other->pso;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x47) || !bullet->fBounce)
+        StartHackDying(bullet, (int)object);   /* the world callback's argument is an int (SWCALLBACK::argument) */
+    if (bullet->fBounce) pxp->gElasticity = 1.0f;
 }
 } // namespace M_func_001803E0
 
@@ -928,19 +927,17 @@ void PresetHackenemyAccel(HACKENEMY *enemy)
 } // namespace M_func_00180EE8
 
 namespace M_func_00180FF0 {
-struct E { int a; int b; int x8; char pad[0x34]; };   /* an XP contact side (0x40) */
-extern int D_002DFB80 __asm__("D_002DFB80");
-void AdjustHackNewXp(HACK *hack, struct E *ae, int i) __asm__("AdjustHackNewXp");
+void AdjustHackNewXp(HACK *hack, XP *pxp, int ixpd) __asm__("AdjustHackNewXp");
 void StartHackDying(HACK *hack, int n) __asm__("StartHackDying");
 // vtable slot 55: base, then start dying when it touches the ship. (inferred)
 // Also known as: OnEnemyXpNew (upstream readable / Sly 1 name; OnEnemyXpNew__FP3ALOP2XPi).
-extern "C" void AdjustHackenemyNewXp(HACKENEMY *enemy, struct E *ae, int i)
+extern "C" void AdjustHackenemyNewXp(HACKENEMY *enemy, XP *pxp, int i)
 {
-    AdjustHackNewXp(enemy, ae, i);
+    AdjustHackNewXp(enemy, pxp, i);
     if (enemy->cDamage) {
-        struct E *pe = &ae[1 - i];
-        if (pe->x8 == D_002DFB80)
-            StartHackDying(enemy, pe->x8);
+        XPS *other = &pxp->axps[1 - i];
+        if (other->psoRoot == (SO *)D_002DFB80)   /* the other side's root is the ship */
+            StartHackDying(enemy, (int)other->psoRoot);
     }
 }
 } // namespace M_func_00180FF0
@@ -1720,20 +1717,19 @@ typedef char WORK_one_Offset[((unsigned)&((WORK*)0)->one==272)?1:-1];
 } // namespace M_func_001823C8
 
 namespace M_func_00182700 {
-struct E { int a; int b; int x8; int xc; char pad[0x30]; };   /* an XP contact side (0x40) */
-void AdjustHackNewXp(HACK *hack, struct E *ae, int i) __asm__("AdjustHackNewXp");
-int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void AdjustHackNewXp(HACK *hack, XP *pxp, int ixpd) __asm__("AdjustHackNewXp");
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *object, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void StartHackDying(HACK *hack, int n) __asm__("StartHackDying");
 // vtable slot 55: base, then start dying on contact with a hack object. (inferred)
 // Also known as: OnSwarmXpNew (upstream readable / Sly 1 name; OnSwarmXpNew__FP3ALOP2XPi).
-extern "C" void AdjustHackwallNewXp(HACKWALL *wall, struct E *ae, int i)
+extern "C" void AdjustHackwallNewXp(HACKWALL *wall, XP *pxp, int i)
 {
-    AdjustHackNewXp(wall, ae, i);
+    AdjustHackNewXp(wall, pxp, i);
     if (wall->cDamage) {
-        struct E *pe = &ae[1 - i];
-        int oid = pe->xc;
-        if (IsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47))
-            StartHackDying(wall, oid);
+        XPS *other = &pxp->axps[1 - i];
+        SO *object = other->pso;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x47))
+            StartHackDying(wall, (int)object);
     }
 }
 } // namespace M_func_00182700
