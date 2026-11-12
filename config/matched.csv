@@ -6637,8 +6637,8 @@ GetBarrelGrabspotOwner__FP6BARREL,0x259A20,2,match,src/game/gameplay/player/grab
 GetBarrelOwnFields__FP6BARREL,0x259A28,2,match,src/game/app/class_registry.cpp
 GetCid35GrabspotOwner__FP5CID35,0x259A30,2,match,src/game/gameplay/player/grabspot.cpp
 GetCid35OwnFields__FP5CID35,0x259A38,2,match,src/game/app/class_registry.cpp
-GetCid27GrabspotOwner__FP5CID27,0x259A40,2,match,src/game/gameplay/player/grabspot.cpp
-GetCid27OwnFields__FP5CID27,0x259A48,2,match,src/game/app/class_registry.cpp
+GetCid27GrabspotOwner__FP9TABLESPOT,0x259A40,2,match,src/game/gameplay/player/grabspot.cpp
+GetCid27OwnFields__FP9TABLESPOT,0x259A48,2,match,src/game/app/class_registry.cpp
 GetHndGrabspotOwner__FP3HND,0x259A70,2,match,src/game/gameplay/player/hnd.cpp
 GetHndOwnFields__FP3HND,0x259A78,2,match,src/game/app/class_registry.cpp
 MakeRoot__t6CGcObj1Z6CFrame,0x259A88,16,match,src/game/splice/gc.cpp
