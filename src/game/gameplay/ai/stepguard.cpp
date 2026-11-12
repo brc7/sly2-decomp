@@ -2341,6 +2341,7 @@ void UpdateLeap(struct LEAP *) __asm__("UpdateLeap");
 // root motion (scaled by the special-state scale act when there is one); a leap drives
 // it only outside its airborne states.
 // Also known as: SteerByKinde (upstream readable / Sly 1 name; SteerByKinde__FP5KINDEP5GUARD).
+#ifdef SLY2_EE_ASM
 extern "C" void DriveStepguardFromAnim(struct ANIMBINDING *binding, struct STEPGUARDIsland *guard)
 {
     U factor, value;
@@ -2402,6 +2403,48 @@ extern "C" void DriveStepguardFromAnim(struct ANIMBINDING *binding, struct STEPG
       __asm__("vmulx.xyzw %0,%1,%2x":"=j"(neg):"j"(source),"j"(factor.q)); }
     guard->desiredVelocity = neg;
 }
+#else
+// C version of the EE body above (register-pinned asm over the views), on the header classes: the root-motion
+// translation and rotation of the binding's instance (a leap only outside its airborne states, a directional
+// animation its velocity), the translation scaled by the scale act's first transform word and negated.
+extern "C" void DriveStepguardFromAnim(struct ANIMBINDING *binding, struct STEPGUARDIsland *guardView)
+{
+    STEPGUARD *guard = (STEPGUARD *)guardView;
+    qword value = D_002A2DD0;
+    qword extra = value;
+    switch (binding->kind) {
+    case BINDING_ASEG:
+    case BINDING_SM: {
+        ASEGA *asega = binding->kind == BINDING_ASEG ? binding->asega : binding->sma->pasegaCur;
+        if (asega) {
+            value = GetStepAsegaTranslation(guardView, asega, asega->time);
+            extra = GetStepAsegaRotation(guardView, asega, asega->time);
+        }
+        break;
+    }
+    case BINDING_LEAP: {
+        UpdateLeap((struct LEAP *)binding->leap);
+        ::LEAP *leap = binding->leap;
+        if (leap->state > 0 && (leap->state < 3 || leap->state == 4))
+            break;
+        value = GetStepAsegaTranslation(guardView, leap->pasegaCur, leap->pasegaCur->time);
+        break;
+    }
+    case BINDING_DIRANIM:
+        value = binding->diranim->velocity;
+        break;
+    }
+    VuLanes v = VuGet(value);
+    if (guard->scale) {
+        float scale;
+        __builtin_memcpy(&scale, ((ACT *)guard->scale)->transform, sizeof(scale));   /* the XF's first word */
+        v.x *= scale; v.y *= scale; v.z *= scale; v.w *= scale;
+    }
+    guard->unknown1E0 = extra;
+    v.x *= -1.0f; v.y *= -1.0f; v.z *= -1.0f; v.w *= -1.0f;
+    guard->qwUnknown190 = VuPut<qword>(v);
+}
+#endif
 } // namespace M_func_00209618
 
 // 0x209768 InitStepguardMover

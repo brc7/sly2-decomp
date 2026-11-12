@@ -37,7 +37,8 @@ typedef char assert_LEAP_size[sizeof(LEAP) == 0x70 ? 1 : -1]; typedef char asser
    146 CID146 (0x40): DIRANIM; vtable 0x2DA9D0, 6 slots */
 struct CID146 : BASIC
 {
-    char pad10[0x24 - 0x10];
+    qword velocity;         /* +0x10 the root velocity (stepguard DriveStepguardFromAnim; guardbhv.cpp MODEL::velocity) */
+    char pad20[0x24 - 0x20];
     ASEGA *pasegaCur;       /* +0x24 [S] the animation the directional animation plays (stepguard GetAnimBindingInstance) */
     char pad28[0x40 - 0x28];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCid146Message");   /* slot 5 */

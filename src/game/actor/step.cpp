@@ -284,6 +284,7 @@ extern float D_002C3C68[3] __asm__("D_002C3C68");
 M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 float SmoothValue__FfffP3SMPPf(float,float,float,float *,float *) __asm__("SmoothValue__FfffP3SMPPf");
+#ifdef SLY2_EE_ASM
 // Copy a 4x4 matrix through four GPR quadword loads/stores.
 extern "C" { static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
     register qword row0 __asm__("$2");
@@ -369,6 +370,38 @@ extern "C" void UpdateStepPhys(struct S *input)
     }while(i>=0);
     }
 }
+#else
+// Per frame: moves each body-part point toward the phys part's point with SmoothValue and stores the point's velocity
+// ((new - old) / dt), so shape changes (crouch, stand) blend instead of popping.
+// C version of the EE body above: the phys part's points are taken into the body part's frame (inverse of the body
+// transform times the phys transform, p.w as 1, VU0 operation order); only x, y, z are smoothed and stored.
+extern "C" void UpdateStepPhys(struct S *input)
+{
+    STEP *step = (STEP *)input;
+    SOPART *body = step->psopartBody;
+    SOPART *phys = step->psopartPhys;
+    if (!body || !phys)
+        return;
+    M4 inverse, relative;
+    InvertMatrix4Rigid(&inverse, (M4 *)&body->transform->worldMatrix);
+    __ml__FRC7MATRIX4T0(&relative, &inverse, (M4 *)&phys->transform->worldMatrix);
+    float m[4][4];
+    __builtin_memcpy(m, &relative, sizeof(m));
+    const float *goal = (const float *)phys->meshLocal.positions;   /* 16 bytes per point */
+    const float *old = (const float *)body->meshLocal.positions;
+    float *velocity = (float *)body->plvo->mpiposvLocal;
+    float dt = g_clock.deltaTime;
+    for (int i = phys->unknown1C; --i >= 0; goal += 4, old += 4, velocity += 4) {
+        float target[3];
+        for (int k = 0; k < 3; k++)
+            target[k] = ((m[0][k] * goal[0] + m[1][k] * goal[1]) + m[2][k] * goal[2]) + m[3][k];
+        for (int k = 0; k < 3; k++) {
+            float next = SmoothValue__FfffP3SMPPf(old[k], target[k], dt, D_002C3C68, 0);
+            velocity[k] = (next - old[k]) / dt;
+        }
+    }
+}
+#endif
 } // namespace M_UpdateStepPhys
 
 // Sets the "no base" option (+0x204); turning it on drops the cached floor contact (+0x208).
