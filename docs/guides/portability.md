@@ -46,13 +46,17 @@ signatures (tools/cleanup/signatures/sigcheck.py): operator*(MATRIX4, MATRIX4) d
 function, hand-passed result pointers bound through `SLY2_SRET_LABEL` (native adapters), bif.cpp's builtins on
 (int, CRef *, CFrame *) with native CRef entries for the C-style ones (`SLY2_BUILTIN_C`), FindSwObject's context and
 other int-typed pointer parameters; from the port's request 8: `SLY2_BSP_NO_LIMIT`, the VU0 microprogram 0x1C0 cull
-in C, LSG's offsets, ConstructLeap's vptr-clobbering stores.
+in C, LSG's offsets, ConstructLeap's vptr-clobbering stores; (v1.23) port request 8's leftovers (C versions of UpdateStepPhys
+and DriveStepguardFromAnim, RenderStepguardSelf on STEPGUARD / CM members, prize.cpp's XFs as XF, StartLeap's
+sizeof(LEAP), BLIPG's fields in classes.h with blip.cpp / emitter.cpp / frm.cpp on them), C fallbacks for every
+statement of the port allowlist's 'frame' class but blip.cpp's microprogram 0x10, sly2/xp.h included from so.h,
+sly2/vis.h (CID5) for cm.cpp SetCmVisZone.
 
 ## 1. Guards and hooks
 
 | hook | EE (matching build) | native build | where |
 |---|---|---|---|
-| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rln SLY2_EE_ASM src include` (sly2/vu0.h, mat.cpp, vec.cpp, xf.cpp, shd.cpp, booty.cpp, rip.cpp, sw.cpp, path.cpp, gs.cpp, geom.cpp); section 2 |
+| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rln SLY2_EE_ASM src include` (sly2/vu0.h, mat.cpp, vec.cpp, xf.cpp, shd.cpp, booty.cpp, rip.cpp, sw.cpp, path.cpp, gs.cpp, geom.cpp; v1.23: step.cpp, stepguard.cpp, guardbhv.cpp, cm.cpp, glob.cpp, dirblend.cpp, jt.cpp, hud.cpp, so.cpp, shape.cpp, sticky.cpp); section 2 |
 | `SLY2_EE_LAYOUT` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_LAYOUT`): EE data layout (4-byte pointers, file records read straight into in-memory structs) and g++ 2.95 vtables | undefined: `#else` reads file records field by field, uses plain virtual calls | shd.cpp LoadClutFromBrx / LoadBmpFromBrx; the hand vtable calls that do not match as virtual calls: gait.cpp StartLeap (slot 35), cnvo.cpp MergeCid14Obstacles (31 / 29 / 9, `SLY2_VTE`), cm.cpp UpdateCmLast / GetCmCpdefi (50; the #else includes sly2/so.h), stepguard.cpp RestartStepguard (27 / 3 / 26), rhythm.cpp (35), so.cpp SetSoXf (35, with its VU0 transform in C), robottank.cpp MarkWheel / UpdateRobottank (31), proxy.cpp AcquireProxySpare (42), missile.cpp PresetSplmissAccel (33), bentley.cpp's gadget drag (33), pipe_jt.cpp (36), booty.cpp SetBootyState (35) |
 | `uptr`, `sptr` (sly2/port.h) | `unsigned int`, `int` | `__UINTPTR_TYPE__`, `__INTPTR_TYPE__` (override: `SLY2_UPTR_TYPE`, `SLY2_SPTR_TYPE`) | `grep -rlwn 'uptr\|sptr' src include` |
 | `SLY2_OFFSETOF(T, m)` (sly2/basic.h) | `((int)(char *)&((T *)0)->m)` | define first, e.g. `((int)__builtin_offsetof(T, m))` | layout asserts, list-link offsets, g_aeopid's `EOPID_OFF` |
@@ -162,6 +166,23 @@ loads and stores) has plain C equivalents:
   WaitCullVisibility / GetCullSphereOffset have #else bodies on it (rendertree keeps the two result registers as file
   state between the start and the reads). Checked on the host against a hand case only; the VU0 harness does not
   model microprograms.
+
+**v1.23 (port request 8 and the port's ee_asm_allowlist 'frame' class)**: step.cpp UpdateStepPhys (whole function:
+the phys part's points through inverse(body world) * phys world, SmoothValue per component, velocity = (next - old)
+/ dt) and stepguard.cpp DriveStepguardFromAnim (whole function on ANIMBINDING / LEAP / CID146::velocity / STEPGUARD);
+RenderStepguardSelf's Length; cm.cpp GDistPlane; glob.cpp StoreSquaredLengthBits and UnpackSubglobBones (the bone loop's
+microprogram 0x60 as mat.cpp's operator* documents it); stepguard.cpp LengthXY and the empty-asm macros OPAQUE_COUNT /
+PAD1 (nothing natively); guardbhv.cpp Moved, QW_LENGTH_COPY, UpdateBhvjuggled's velocity save, HandleBhvguardMessage's
+knock-back axis, ChooseBhvTargetsTarget's setup (its `lui 0x2C` / `lui 0x2A` address arithmetic is D_002BE710 /
+D_002A55FC by name); dirblend.cpp BlendPositive / BlendNegative; jt.cpp UpdateJtAttachCorrection's row stores;
+hud.cpp SlotSound; so.cpp SetSoGrfBit8 (the tagged LO word: unknown40 when bit 0 is set, else LOUPD::grf); shape.cpp
+GetShapeBounds' vmove / li.s; sticky.cpp FindMeshClosestPoint (whole function; u and v as the EE computes them:
+u = (d . (n x e2)) / (e1 . (n x e2)), v = (n . (d x e1)) / the same, e1 = a - c, e2 = b - c, n = e1 x e2, d = input - c)
+and its Unit helper. Tested with the harness (scratch v123/vu0test/t_v123.cpp: the asm texts of GDistPlane,
+StoreSquaredLengthBits, LengthXY, Length / Moved, the knock-back axis, the blend axes, sticky's triangle statements
+(their lqc2 / sqc2 / qmfc2 parts replaced by operands) and closest point, UpdateStepPhys' transform; 100,000 random
+cases each, maximum error 0). Left: blip.cpp UpdateMs10 (`vcallms 0x10`: a microprogram the harness does not model and
+nothing in the tree documents); UnpackSubglobBones' reading of 0x60 is mat.cpp's (not checked against the microcode).
 
 Conventions: the C follows the VU0 operation order (one rounding per VU operation: `(a.x b.x + a.y b.y) + a.z b.z`,
 `v * (1 / d)` rather than `v / d`), never fuses (build with `-ffp-contract=off`), and uses IEEE floats; the VU's
@@ -302,6 +323,26 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   `tracks[i]` (the two CONTEXT views disagree on TRACK's members; needs a hand rewrite of the whole view), step.cpp
   AddStepAxisXps' local SO, the XP copies in mark, solve, rip, step, bentley, stepplayer, robottank, sensor, grab, jt
   (so xp.h is not in so.h yet), POSE / RENDER, cm.cpp SetCmVisZone's +0xE0.
+  Done in v1.23 (every change byte-identical; cm.o RENAMED only, see below): port request 8: UpdateStepPhys and
+  DriveStepguardFromAnim C versions (section 2; leap.h declares CID146::velocity at +0x10), RenderStepguardSelf on
+  STEPGUARD (LO::visibilityMask, SO::rootTransform / model / opacity / psobounds, STEP::vecPivotOffset,
+  STEPGUARD::pulseStartTime) and &CM::tunnelPolicy, prize.cpp ProjectDprizeTransform's CHANNEL view replaced by XF (the
+  stamp word is XF::worldStamp, the +0x3C store the local position's w, the velocity XF::velq), gait.cpp StartLeap
+  clears sizeof(LEAP); BLIPG declares its members in classes.h (the constructor's 32-step loop now comes from the age
+  table's BLIPGAGE element constructor) and blip.cpp's BLIPGV, emitter.cpp's two BLIPG views and frm.cpp's 0x454 are gone
+  (the port can enable blip groups); every 'frame' allowlist statement but blip.cpp UpdateMs10 has a C fallback
+  (section 2); so.h includes sly2/xp.h (robottank, bentley and jt.cpp's XP copies removed; step.cpp AdjustStepNewXp on
+  STEP / XP); CID5 moved to sly2/vis.h so cm.cpp SetCmVisZone reads CID5::grfvis (including it renumbers two
+  compiler-local names in cm.o, s_rgba.81 -> .111 and _$tmp_0.82 -> .112, not in the config: bytes and link unchanged);
+  brx_sw.cpp's LoadSwObjectsFromBrx / CloneLoWithParent parent as SO *; STEP::targetAngularVelocity (was unknown1E0).
+  Still open after v1.23: port request 8's path planning views (FindPathzonePathCurve, GRAPH / G as CG), emitter.cpp
+  EXPLS / EMITP, AddXp / FindShapeClosestPoint / bhvstk int pointers, button / rail / pipe, the remaining glob /
+  rendertree views; blip.cpp UpdateMs10 (microprogram 0x10); air.cpp CONTEXT `tracks[i]`; step.cpp AddStepAxisXps'
+  local SO; POSE / RENDER; namespace-local XP views that are not the contact record (rip.cpp, stepplayer.cpp);
+  sigcheck's struct-return forms (bif.cpp BuiltinObjectOption / BuiltinSetCadr, AreRefsStructurallyEqual,
+  basic.cpp EnsureBasicOption: consistent with their definitions, which take the result pointer explicitly) and the
+  remaining int-vs-pointer declarations (85 -> 83; mismatching declarations 1298 -> 1295, cross-declaration conflicts
+  276 -> 274). Views inventory (tools/cleanup/views): candidates 1039 -> 999 (frame path 172 -> 164), TU structs 2560 -> 2518.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks
