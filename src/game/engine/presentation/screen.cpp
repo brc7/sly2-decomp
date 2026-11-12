@@ -96,7 +96,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* A screen as the m2c bodies read it. */
 struct SCRCHILD { char pad0[0xB0]; int unknownB0; };
 /* The notice banner (D_003DA0C0, CID154, 0x30 bytes; not a SCREEN: BASIC, then its state, the text shown and the one
-   queued, and its widget). M_SetNoticeState's OBJ is the same record over a 0x10-byte pad. */
+   queued, and its widget). */
 struct NOTICE : BASIC
 {
     int state;              /* +0x10 NoticeState */
@@ -105,7 +105,7 @@ struct NOTICE : BASIC
     float duration;         /* +0x1C */
     int queuedTextId;       /* +0x20 the text to show next, -1 none */
     float queuedDuration;   /* +0x24 */
-    LO *widget;             /* +0x28 its widget (oid 0x371) */
+    WIDGET *widget;         /* +0x28 its widget (oid 0x371) */
 };
 /* A gadget menu item (0x20 bytes, the per-hero tables D_002C2DE8/D_002C3028/D_002C3148): gadget id, its highlight
    animations, its place on the page and flags. */
@@ -715,7 +715,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
 // Post-load of the notice banner: finds its widget.
 extern "C" void PostNoticeLoad(NOTICE *notice)
 {
-    notice->widget = FindSwObject(&g_sw, 0x405, (OID)0x371, 0);
+    notice->widget = (WIDGET *)FindSwObject(&g_sw, 0x405, (OID)0x371, 0);
 }
 
 // Resets the notice banner: no current or queued text, no widget, state 0.
@@ -728,24 +728,12 @@ extern "C" void ResetNotice(NOTICE *notice)
 }
 
 namespace M_UpdateNotice {
-typedef struct { char pad[0x58]; int visibility; } W;
-typedef struct {
-    char pad[0x10];
-    int state;
-    float stateTime;
-    int textId;
-    float duration;
-    int queuedTextId;
-    float queuedDuration;
-    W *widget;
-} OBJ;
-void SetNoticeState(OBJ *, int) __asm__("SetNoticeState");
-int IsWidgetVisible(W *) __asm__("IsWidgetVisible");
-int IsWidgetAnimPlaying(W *, int) __asm__("IsWidgetAnimPlaying");
+int IsWidgetVisible(WIDGET *) __asm__("IsWidgetVisible");
+int IsWidgetAnimPlaying(WIDGET *, int) __asm__("IsWidgetAnimPlaying");
 // Per-frame notice banner update: marks it shown once the widget is fully visible, times it out (only while hidden),
 // or swaps to the queued text; hides it at the end.
 // Also known as: UpdatePrompt (upstream readable / Sly 1 name; UpdatePrompt__FP6PROMPT).
-extern "C" void UpdateNotice(OBJ *p)
+extern "C" void UpdateNotice(NOTICE *p)
 {
     if (p->widget == 0)
         return;
@@ -753,7 +741,7 @@ extern "C" void UpdateNotice(OBJ *p)
     case NOTICE_HIDDEN:
         break;
     case NOTICE_APPEARING:
-        if (p->widget->visibility == 2)
+        if (p->widget->state == 2)
             SetNoticeState(p, NOTICE_SHOWN);
         break;
     case NOTICE_SHOWN:
@@ -767,7 +755,7 @@ extern "C" void UpdateNotice(OBJ *p)
         }
         break;
     case NOTICE_HIDING:
-        if (p->widget->visibility < 2)
+        if (p->widget->state < 2)
             SetNoticeState(p, NOTICE_HIDDEN);
         break;
     case NOTICE_SWAPPING:
@@ -783,19 +771,9 @@ extern "C" void UpdateNotice(OBJ *p)
 } // namespace M_UpdateNotice
 
 namespace M_PostNotice {
-typedef struct {
-    char pad[0x10];
-    int state;
-    int pad14;
-    int textId;
-    float duration;
-    int queuedTextId;
-    float queuedDuration;
-} OBJ;
-void CancelNotice(OBJ *, int) __asm__("CancelNotice");
-void SetNoticeState(OBJ *, int) __asm__("SetNoticeState");
+void CancelNotice(NOTICE *, int) __asm__("CancelNotice");
 // Requests a notice text for a duration, queued behind the current one; -1 cancels.
-extern "C" void PostNotice(OBJ *p, int textId, float duration)
+extern "C" void PostNotice(NOTICE *p, int textId, float duration)
 {
     if (textId == -1) {
         CancelNotice(p, -1);
@@ -826,9 +804,8 @@ extern "C" void PostNotice(OBJ *p, int textId, float duration)
 } // namespace M_PostNotice
 
 namespace M_CancelNotice {
-struct S { char pad[0x18]; int textId; int duration; int queuedTextId; };
 // Cancels a notice text: the current one times out now, or the queued one is dropped; -1 cancels the queue.
-extern "C" void CancelNotice(struct S *p, int n) {
+extern "C" void CancelNotice(NOTICE *p, int n) {
     if (n == -1) {
         p->queuedTextId = -1;
         p->duration = 0;
@@ -852,22 +829,12 @@ extern "C" int GetCurrentNoticeTextId(NOTICE *notice)
 }
 
 namespace M_SetNoticeState {
-typedef struct {
-    char pad[0x10];
-    int state;
-    float stateTime;
-    int textId;
-    float duration;
-    int queuedTextId;
-    float queuedDuration;
-    WIDGET *widget;
-} OBJ;
 void StartWidgetMainAnim(WIDGET *, int) __asm__("StartWidgetMainAnim");
 void ShowWidgetArgs(WIDGET *, int, int *) __asm__("ShowWidgetArgs");
 // Switches the notice banner's state: show the widget with the text, hide it, swap animation, or main animation after
 // a swap.
 // Also known as: SetPromptState (upstream readable / Sly 1 name; SetPromptState__FP6PROMPTi).
-void SetNoticeState(OBJ *p, int n) __asm__("SetNoticeState"); void SetNoticeState(OBJ *p, int n)
+void SetNoticeState(NOTICE *p, int n) __asm__("SetNoticeState"); void SetNoticeState(NOTICE *p, int n)
 {
     WIDGET *plo;
     if (n == p->state)
