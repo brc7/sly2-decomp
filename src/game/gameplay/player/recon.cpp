@@ -206,9 +206,9 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
         a = GetLoWorldPos(o);
         __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(g_cm.matq.pos));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
-        if (o->rFade < f && IN_WORLD(o->fadeObject) == 0)
+        if (o->fadeDistance < f && IN_WORLD(o->fadeObject) == 0)
             FadeSoIn(o->fadeObject, 0.25f);
-        else if (f <= o->rFade && !!IN_WORLD(o->fadeObject))
+        else if (f <= o->fadeDistance && !!IN_WORLD(o->fadeObject))
             FadeSoOut(o->fadeObject, 0.25f);
     }
 }
@@ -279,7 +279,7 @@ void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
     float radius;
     V *point;
     qword origin = GetLoWorldPos(other);
-    radius = other->sHead;
+    radius = other->visibilityRadius;
     IntersectSwBoundingBox(&g_sw, origin, reconSel->position.q, FilterReconOccluder, 0, &query.count,
                            &query.objects);
     {
@@ -375,7 +375,7 @@ void SelectReconTarget(RECONSEL *reconSel)
                 continue;
             Store(&position.q, GetLoWorldPos(o));
             camera = &g_cm;
-            radius.q = ScalarBits(&o->sRadius);
+            radius.q = ScalarBits(&o->selectionRadius);
             PlaneArguments(&eye, &threshold, &point, radius.q, &*(qword *)&camera->pos, &position.q);
             if (!IsInCameraFrustum(camera, PlaneDelta(point, eye), threshold))
                 continue;
@@ -640,7 +640,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
         }
     if (reconSel->actor) {
         qword world = GetLoWorldPos(reconSel->actor);
-        VU_FLOAT offset = VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
+        VU_FLOAT offset = VuFloatFromMemWord(*(int *)&reconSel->actor->visibilityRadius);
         qword head = VuAdd(world, VuScaleByX(GetMatrixUp((MATRIX4Q *)&g_cm.mat), offset.qw));
         qword base = ConvertCmWorldToScreen(&g_cm, world);
         qword top = ConvertCmWorldToScreen(&g_cm, head);
@@ -815,12 +815,12 @@ extern "C" void InitReconTarget(RECONTGT *target)
 // Recon target LoadFromBrx: defaults 75 / 0.25 / 5000, then the level's values. Verified by parsing all 43 levels.
 extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
 {
-    target->sHead = 0.0f;
-    target->sRadius = 75.0f;
+    target->visibilityRadius = 0.0f;
+    target->selectionRadius = 75.0f;
     target->threshold = 0.25f;
-    target->rFade = 5000.0f;
+    target->fadeDistance = 5000.0f;
     LoadXfmFromBrx(target, pbis);
-    if (target->sHead == 0.0f) target->sHead = target->sRadius;
+    if (target->visibilityRadius == 0.0f) target->visibilityRadius = target->selectionRadius;
     if (target->idPending == -2) target->idPending = target->id;
 }
 
@@ -857,11 +857,11 @@ void SetReconTargetDone(RECONTGT *target, int n)
         RequestTaskState(target->link, 2, target);
         o = GetHeroPo(&g_sw);
         if (o && IsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(&o->jtmode.hud);
-    } else target->fDone = n;
+    } else target->isDone = n;
 }
 
 // Whether the target was photographed (task done, or the local flag).
-int IsReconTargetDone(RECONTGT *target) { if (target->link) return IsTaskComplete(target->link); return target->fDone; }
+int IsReconTargetDone(RECONTGT *target) { if (target->link) return IsTaskComplete(target->link); return target->isDone; }
 
 // Whether the target is visible and its task is in state 1.
 int IsReconTargetSelectable(RECONTGT *target)
