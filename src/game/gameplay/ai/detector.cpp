@@ -33,30 +33,9 @@ enum {
 /* Target detection states (DETECTORTARGET::state). */
 enum { TARGET_UNSEEN = 0, TARGET_SEEN = 1, TARGET_LOST = 2 };
 /* The detector is guard.h DETECTOR, its targets DETECTORTARGET. */
-/* A child link of the object at +0xE4 (DETECTOR::ownerPhysicsTree read as an SO's child list: +0x64 the first). */
-struct CHNL { int isSeen; CHNL *next; int unknown8; struct SOV *object; };
-struct CHAIN { char pad[0x64]; CHNL *firstChild; };
-/* A target object (an SO; +0x240 an offset added for CID 0x33, +0x4C8.. a hero's state, +0x11AC a flag). */
-struct ZV { char pad[0xE4]; int unknownE4; char pad1[0x194 - 0xE8]; int unknown194; };
-struct SOV
-{
-    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
-    VTE *vt;
-    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x54 - 0x40]; void *transforms; void *positionXf; void *rotationXf; void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; char padE0[0xE4 - 0xE0]; void *parts; void *physics; void *physicsTree; char padF0[0x134 - 0xF0]; void *psobounds; void *pxa; char pad13C[0x144 - 0x13C]; void *prender; char pad148[0x240 - 0x148];
-    qword eyeOffset;
-    char pad250[0x4C8 - 0x250];
-    int jtState;
-    int jtSubstate;
-    int pad4D0;
-    ZV *attachedObject;
-    char pad4D8[0x1040 - 0x4D8];
-    int unknown1040;
-    char pad1044[0x11AC - 0x1044];
-    int isHidden;
-};
-typedef char assert_SOV_isHidden[(unsigned int)&((SOV *)0)->isHidden == 0x11AC ? 1 : -1];
-/* A world volume of the occluder list g_sw.dlCid23 (+0xEC its BSP, +0x130 next). */
-struct WVOL : XFM { char pad[0xEC - 0xE0]; void *bsp; char pad1[0x130 - 0xF0]; WVOL *next; };
+/* A target: any LO; the player-only members (STEP::pivotOffset, STEPPLAYER's jtgrab / isHidden) are read after the
+   class tests. */
+typedef STEPPLAYER SOV;
 struct BUF { char a[4 * sizeof(LSG)]; };   /* four sly2/lsg.h LSGs */
 /* Line-test callback arguments (FilterDetectorLineOfSightHit/FilterDetectorHitClass31). */
 /* The hits are SOPARTs; their owners SOs with a physics tree (SOTREE). */
@@ -272,7 +251,7 @@ extern "C" int CalculateDetectorTargetState(DETECTOR *detector, SOV *target, int
 {
     BUF hitBuffer;
     qword targetPos;
-    WVOL *occluder;
+    CID23 *occluder;   /* the occluder volumes, g_sw.dlCid23 */
     // (Single exit through `done`: returning directly keeps the result in $v0 instead of a saved register and
     // no longer matches.)
     SOV *hero = GetHeroPo(&g_sw);
@@ -285,21 +264,21 @@ extern "C" int CalculateDetectorTargetState(DETECTOR *detector, SOV *target, int
     if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && target->isHidden) { state = TARGET_UNSEEN; goto done; }
     if (detector->isForced) { state = TARGET_SEEN; goto done; }
     if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEP))
-        targetPos = VuAdd(GetLoWorldPos(target), target->eyeOffset);
+        targetPos = VuAdd(GetLoWorldPos(target), target->pivotOffset);
     else
         targetPos = GetLoWorldPos(target);
-    for (occluder = *(WVOL **)&g_sw.dlCid23; occluder; occluder = occluder->next) {
+    for (occluder = *(CID23 **)&g_sw.dlCid23; occluder; occluder = (CID23 *)occluder->dleList.next) {
         qword eyeLocal = ConvertPosBetweenLos(0, occluder, GetDetectorEyePosition(detector));
         qword targetLocal = ConvertPosBetweenLos(0, occluder, targetPos);
-        if (ClipSegmentBsp(occluder->bsp, SLY2_BSP_NO_LIMIT, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = TARGET_UNSEEN; goto done; }
+        if (ClipSegmentBsp(occluder->bspc.nodes, SLY2_BSP_NO_LIMIT, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = TARGET_UNSEEN; goto done; }
     }
     switch (state) {
     case TARGET_UNSEEN:
         if (detector->ownerPhysicsTree) {
-            CHNL *child;
-            for (child = ((CHAIN *)detector->ownerPhysicsTree)->firstChild; child; child = child->next) {
-                if (child->object == target) {
-                    if (child->isSeen) { state = TARGET_SEEN; goto done; }
+            XPLIST *child;   /* the owner's contact lists: a target it touches is seen */
+            for (child = detector->ownerPhysicsTree->pxplistFirst; child; child = child->pxplistNext) {
+                if (child->psoOther == (SO *)target) {
+                    if (child->pxpFirst) { state = TARGET_SEEN; goto done; }
                     break;
                 }
             }
@@ -405,32 +384,32 @@ static inline float Dot(qword a, const VECTORQ &b)
 extern "C" int IsDetectorTargetConcealed(DETECTOR *detector, SOV *target)
 {
     if (!IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER)) return 0;
-    if (target->jtSubstate == -1) return 0;
+    if (target->jtgrab.kind == -1) return 0;
     VECTORQ offset; offset.q = VuSub(GetLoWorldPos(target), GetLoWorldPos(detector));
-    switch (target->jtState) {
+    switch (target->jtgrab.state) {
     case 0:
     case 13:
-        if (IsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_C)) {
-            if (target->attachedObject->unknown194) return 0;
-        } else if (IsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_22)) {
-            if (target->attachedObject->unknownE4) return 0;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(target->jtgrab.grabbedObject, CID_COVER_C)) {
+            if (((GRABSPOT *)SLY2_GRABSPOT_BASE(CID12, target->jtgrab.grabbedObject))->unknown04) return 0;
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(target->jtgrab.grabbedObject, CID_COVER_22)) {
+            if (((GRABSPOT *)SLY2_GRABSPOT_BASE(CID34, target->jtgrab.grabbedObject))->unknown04) return 0;
         } else {
-            return !target->attachedObject->unknownE4;
+            return !((GRABSPOT *)SLY2_GRABSPOT_BASE(CID34, target->jtgrab.grabbedObject))->unknown04;
         }
         {
             bool isFacingAway = Dot(offset.q, *GetLoWorldMatrix(target)) <= 0.0f;
             bool expectFacingAway = false;
-            if (target->jtState == 0) expectFacingAway = !target->unknown1040;
+            if (target->jtgrab.state == 0) expectFacingAway = !target->unknown1040;
             if (isFacingAway == expectFacingAway) break;
             return 1;
         }
     case 1:
-        if (target->jtSubstate) break;
+        if (target->jtgrab.kind) break;
         return 1;
     case 2:
         return 1;
     case 8:
-        if (target->jtSubstate == 9 || target->jtSubstate == 10) return 1;
+        if (target->jtgrab.kind == 9 || target->jtgrab.kind == 10) return 1;
         break;
     }
     return 0;

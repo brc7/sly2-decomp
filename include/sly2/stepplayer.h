@@ -612,7 +612,7 @@ struct STEPPLAYER : public STEP
       GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
       LO *unknown11A4;   /* +0x11A4 an object bound by oid (the players' SNIP tables, BindLoOidTable) */
       LO *pbooty;   /* +0x11A8 the booty object the player carries (SpawnStepplayerBootyMarker) */
-      undefined4 unk_0x11ac;
+      int isHidden;   /* +0x11AC hidden: detectors do not see the player (detector.cpp CalculateDetectorTargetState) */
       JTTHROW jtthrow;   /* carry/throw */
       int unknown12F0;
       int unknown12F4;
