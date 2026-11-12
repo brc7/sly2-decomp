@@ -11,6 +11,7 @@
 #include "sly2/render.h"
 #include "sly2/lo.h"
 #include "sly2/so.h"
+#include "sly2/wr.h"   /* WRBG, WR (the skin matrices) */
 #include "vifs.h"
 
 // 0x1D66F0 StaticInit_rendertree and GlobalConstructors_rendertree: g++-generated for the six engine slot pools.
@@ -63,62 +64,13 @@ struct STACK
     uint c;
     RENDERBLOCK *a[256];
 };
-struct SKIN
-{
-    char pad[0xC];
-    uchar *pbOwner;
-    int cmat;
-    int fFirst;
-    int fSecond;
-    int pad1C;
-    uint ib;
-};
-struct MESH
-{
-    int unknown;
-    XF *pxf;
-    M4 *pmatParent;
-    uint grf;
-    void *pv;
-    int pad14[2];
-    SKIN *pskin;
-    int pad20[2];
-};
-struct DESC
-{
-    int unknown;
-    float dist;
-    void *chain;
-    int padC[2];
-};
-struct SCENE   /* so.h GLOBSET (names in comments) */
-{
-    SO *owner;
-    float f04;              /* GLOBSET unknown04 */
-    int zero08, zero0C;     /* GLOBSET unknown08: zero in every snapshot */
-    float boundsCenter[3];
-    int zero1C;             /* GLOBSET unknown1C: zero in every snapshot */
-    float boundsRadius;
-    int cobj;
-    SAA **apobj;
-    int numShaderOids;
-    int *shaderOids;
-    int selectedShader;
-    int numPieces;
-    DESC *adesc;
-    MESH *amesh;
-    void *pv44;
-    RENDERBLOCK *pblockRoot;
-    int nStamp;
-    float scale;
-};
 
 extern VIFS D_002DEA28;   /* the frame's VIF1 stream */
 extern RPL D_003B3980[0x2000];
 extern RPL *D_003D4A50;
 extern "C" {
 int ShouldUpdateSaa__FP3SAA(SAA *psaa);
-void SubmitGlobsetRelight(SCENE *pscene);
+void SubmitGlobsetRelight(GLOBSET *pscene);
 void PushBlockStack(STACK *pstack, RENDERBLOCK *pblock);
 RENDERBLOCK *PopBlockStack(STACK *pstack);
 M4 __ml__FRC7MATRIX4T0(const M4 &matA, const M4 &matB);
@@ -368,23 +320,23 @@ static inline void PadQw()
 }
 // Scene render-list walk: cull every RENDER of every RENDERBLOCK against view (VU0 microprogram 0x1C0) and queue
 // meshes/packets/deferred blocks. (inferred)
-extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
+extern "C" void CullSceneRenderList(STACK *pstack, GLOBSET *pscene)
 {
     SO *apobjDeferred[512];
     int i;
-    for (i = 0; i < pscene->cobj; i++)
+    for (i = 0; i < pscene->cpsaa; i++)
     {
-        SAA *pobj = pscene->apobj[i];
+        SAA *pobj = pscene->apsaa[i];
         if (ShouldUpdateSaa__FP3SAA(pobj))
         {
             ((LO *)pobj)->Add();
         }
     }
     SW *pg = &g_sw;
-    if (pscene->nStamp != pg->relightStamp)
+    if (pscene->relightStamp != pg->relightStamp)
         SubmitGlobsetRelight(pscene);
     int cDeferred = 0;
-    PushBlockStack(pstack, pscene->pblockRoot);
+    PushBlockStack(pstack, (RENDERBLOCK *)pscene->aposeset);   /* POSESET: rendertree.cpp's RENDERBLOCK */
     int grfChannels = g_cm.grfvis;
     RENDERBLOCK *pblock;
     while ((pblock = PopBlockStack(pstack)) != 0)
@@ -450,7 +402,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
                     U params;
                     params.f[0] = gVis;
                     params.f[1] = 1.0f;
-                    params.f[2] = pscene->scale;
+                    params.f[2] = pscene->unknown50;
                     params.w[3] = 0;
                     *(ulong *)pdma->m_pb = 0x10000002;
                     pdma->m_pb += 0x10;
@@ -464,8 +416,8 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
             case 0:
             {
                 uint index = prender->index;
-                MESH *pmesh = &pscene->amesh[index];
-                DESC *pdesc = &pscene->adesc[index];
+                GLOB *pmesh = &pscene->pieces[index];
+                SUBGLOB *pdesc = &pscene->subMeshes[index];
                 if (prender->hidden)
                     break;
                 RPL *prpl = D_003D4A50;
@@ -485,43 +437,43 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
                         break;
                     }
                 }
-                prpl->depth = (pmesh->grf & 0x400) ? pdesc->dist : SqLength(dpos);
+                prpl->depth = (pmesh->grf & 0x400) ? pdesc->unknown04 : SqLength(dpos);
                 VIFS *pdma = &D_002DEA28;
                 ulong *ptag = (ulong *)pdma->m_pb;
                 *ptag = 0x10000000;
                 pdma->m_pb += 0x10;
-                if (pmesh->pmatParent)
+                if (pmesh->unknown08)
                 {
                     M4 mat;
-                    mat = __ml__FRC7MATRIX4T0(*pmesh->pmatParent, *(M4 *)&pmesh->pxf->worldMatrix);
+                    mat = __ml__FRC7MATRIX4T0(*(M4 *)pmesh->unknown08, *(M4 *)&pmesh->transform->worldMatrix);
                     UnpackQws<0x6C04C000>(&mat, 16);
                 }
                 else
                 {
-                    UnpackQws<0x6C04C000>(&*(M4 *)&pmesh->pxf->worldMatrix, 16);
+                    UnpackQws<0x6C04C000>(&*(M4 *)&pmesh->transform->worldMatrix, 16);
                 }
-                SKIN *pskin = pmesh->pskin;
+                WRBG *pskin = pmesh->pwrbg;
                 if (pskin)
                 {
                     M4 matInv;
-                    if (pmesh->pmatParent)
-                        matInv = InvertMatrix4Rigid(__ml__FRC7MATRIX4T0(*pmesh->pmatParent, *(M4 *)&pmesh->pxf->worldMatrix));
+                    if (pmesh->unknown08)
+                        matInv = InvertMatrix4Rigid(__ml__FRC7MATRIX4T0(*(M4 *)pmesh->unknown08, *(M4 *)&pmesh->transform->worldMatrix));
                     else
-                        matInv = InvertMatrix4Rigid(*(M4 *)&pmesh->pxf->worldMatrix);
-                    uint ib = pskin->ib;
+                        matInv = InvertMatrix4Rigid(*(M4 *)&pmesh->transform->worldMatrix);
+                    uint ib = pskin->iqw;
                     for (int imat = 0; imat < pskin->cmat; imat++)
                     {
-                        if (pskin->fFirst)
+                        if (pskin->fDpos)
                         {
                             M4 mat;
-                            int ibMat = imat * 0x40 + 0x6F0;
-                            mat = __ml__FRC7MATRIX4T0(matInv, *(M4 *)(pskin->pbOwner + ibMat));
+                            int ibMat = imat * (int)sizeof(MATRIX4Q) + SLY2_OFFSETOF(WR, warpMatrices);   // WR::warpMatrices[imat]
+                            mat = __ml__FRC7MATRIX4T0(matInv, *(M4 *)((char *)pskin->pwr + ibMat));
                             UnpackQws(ib | 0x6C04C000, &mat, 16);
                             ib += 4;
                         }
-                        if (pskin->fSecond)
+                        if (pskin->fDuv)
                         {
-                            UnpackQws(ib | 0x6C04C000, pskin->pbOwner + imat * 0x40 + 0x7F0, 16);
+                            UnpackQws(ib | 0x6C04C000, &pskin->pwr->uvMatrices[imat], 16);
                             ib += 4;
                         }
                     }
@@ -529,7 +481,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
                 U params;
                 params.f[0] = gVis;
                 params.f[1] = 1.0f;
-                params.f[2] = pscene->scale;
+                params.f[2] = pscene->unknown50;
                 params.w[3] = 0;
                 UnpackWords<0x6C01C008>(&params, 4);
                 int sort = prender->sort;
@@ -544,7 +496,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
                 *(ulong *)D_002DEA28.m_pb = 0x60000000;
                 D_002DEA28.m_pb += 0x10;
                 prpl->pbCall = (uchar *)ptag;
-                prpl->pvCall = pmesh->pv;
+                prpl->pvCall = pmesh->pqwChain;
                 break;
             }
             }
