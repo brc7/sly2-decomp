@@ -17,12 +17,11 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 #include "sly2/so.h"
+#include "sly2/xp.h"
 #include "sly2/lo.h"
 typedef union { qword q; float f[4]; } U;
 /* g++ 2.95 vtable entry (the blast listener's slot 51 is called by hand: its class is not known). */
 /* The bomb's XA (+0xE4: its position at +0x50) and XP (+0xEC: radius at +0x30, owner at +0x60, contact list at +0x64). */
-struct XPQ;
-typedef struct XPL { XPQ *pq; struct XPL *next; } XPL;
 /* A custom contact (0x30): position, normal, the normal's dot as float bits, the object. */
 struct CXP { qword pos; qword normal; int n20; SO *plo; int pad[2]; };
 typedef char assert_CXP_size[sizeof(CXP) == 0x30 ? 1 : -1];
@@ -281,13 +280,11 @@ extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int cbsp, BSP *absp, BSP
     }
 }
 
-typedef struct XPE { BOMBV *object; void *x; int pad[14]; } XPE;
-typedef struct XPQ { int x0, x4; XPE ae[2]; char pad88[0x24]; struct XPQ *pqNext; } XPQ;
-#define AE(q) ((q)->ae)
-// Index (0/1) of the other end of a contact pair, relative to this bomb.
-static inline int IOther(XPQ *pq, BOMBV *bomb)
+#define AE(q) ((q)->axps)
+// Index (0/1) of the other side of a contact (xp.h XP), relative to this bomb.
+static inline int IOther(XP *pq, BOMBV *bomb)
 {
-    int i = bomb != AE(pq)[0].object;
+    int i = (SO *)bomb != AE(pq)[0].psoRoot;
     i = 1 - i;
     return i;
 }
@@ -332,9 +329,9 @@ extern "C" void HandleBombContact(BOMBV *bomb)
 {
     qword pos;
     float gBest;
-    XPQ *pqBest;
-    XPL *pl;
-    XPQ *pq;
+    XP *pqBest;
+    XPLIST *pl;
+    XP *pq;
 
     AdjustSoXps(bomb);
     switch (bomb->k) {
@@ -353,9 +350,9 @@ extern "C" void HandleBombContact(BOMBV *bomb)
     pos = *(qword *)bomb->parts->matWorld.mat[3];
     gBest = D_002A4B18;
     pqBest = 0;
-    for (pl = (XPL *)bomb->physicsTree->pxplistFirst; pl; pl = pl->next) {
-        for (pq = pl->pq; pq; pq = pq->pqNext) {
-            float g = QwordX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
+    for (pl = bomb->physicsTree->pxplistFirst; pl; pl = pl->pxplistNext) {
+        for (pq = pl->pxpFirst; pq; pq = pq->pxpNext) {
+            float g = QwordX(Length(VuSub(AE(pq)[0].pos, pos)));
             int f;
             if (gBest <= g)
                 continue;
@@ -365,7 +362,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
                 f = 1;
                 break;
             case 2: {
-                BOMBV *pOther = AE(pq)[IOther(pq, bomb)].object;
+                BOMBV *pOther = (BOMBV *)AE(pq)[IOther(pq, bomb)].psoRoot;
                 if (IsBasicDerivedFrom__FP5BASIC3CID(pOther, 0x32)) {
                     f = 0;
                     if (IsPoPlayable(pOther))
@@ -374,7 +371,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
                 break;
             }
             case 1:
-                if (IsBombChainFreeOfExcludedClasses(bomb, (SOV *)AE(pq)[IOther(pq, bomb)].x))
+                if (IsBombChainFreeOfExcludedClasses(bomb, (SOV *)AE(pq)[IOther(pq, bomb)].pso))
                     f = 1;
                 break;
             }
@@ -389,7 +386,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
     switch (bomb->k) {
     case 0:
     case 2: {
-        qword posT = *(qword *)AE(pqBest)[0].pad;
+        qword posT = AE(pqBest)[0].pos;
         qword v = bomb->GetVelocity();
         register qword n __asm__("vf1");
         register qword kDef __asm__("$6");
@@ -410,7 +407,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
         break;
     }
     case 1:
-        PostSwCallback(&g_sw, bomb, D_002A4B10.l, AE(pqBest)[IOther(pqBest, bomb)].x);
+        PostSwCallback(&g_sw, bomb, D_002A4B10.l, AE(pqBest)[IOther(pqBest, bomb)].pso);
         break;
     }
 }
