@@ -40,6 +40,7 @@
 #include "sly2/light.h"
 #include "sly2/act.h"
 #include "sly2/blip.h"   /* BLIPBATCH, BLIPBEZ */
+#include "sly2/shd.h"   /* SHDBLIP (the slShd link) */
 #include "heap.h"
 
 extern "C" {
@@ -144,8 +145,8 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlSoTreeQueue1,SLY2_OFFSETOF(SOTREE, dleQueue1));
     InitDl__FP2DLi(&world->dlSoTreeQueue2,SLY2_OFFSETOF(SOTREE, dleQueue2));
     InitDl__FP2DLi(&world->dlAsega,SLY2_OFFSETOF(ASEGA, dleSw));
-    InitSl(&world->slEvent,0x10);
-    InitSl(&world->slCallback,0x10);
+    InitSl(&world->slEvent,SLY2_OFFSETOF(SWEVENT, next));
+    InitSl(&world->slCallback,SLY2_OFFSETOF(SWCALLBACK, next));
     InitDl__FP2DLi(&world->dlTarget,SLY2_OFFSETOF(TARGET, targetListLink));
     InitDl__FP2DLi(&world->dlCid11,SLY2_OFFSETOF(PIPE, dleGrab));
     InitDl__FP2DLi(&world->dlCid13,SLY2_OFFSETOF(RAIL, dleGrab));
@@ -162,9 +163,9 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(NOISE, next));
     InitDl__FP2DLi(&world->dlStepguard,SLY2_OFFSETOF(STEPGUARD, dleGuard));
     InitDl__FP2DLi(&world->dlCid98,SLY2_OFFSETOF(CID98, dleBreakable));
-    InitSl(&world->slPoctl,0x84);
-    InitSl(&world->slShd,0x18);
-    InitSl(&world->slSaa,0x40);
+    InitSl(&world->slPoctl,SLY2_OFFSETOF(POCTL, next));
+    InitSl(&world->slShd,SLY2_OFFSETOF(SHDBLIP, pshdblipNext));
+    InitSl(&world->slSaa,SLY2_OFFSETOF(SAA, next));
     InitDl__FP2DLi(&world->dlZprHit,SLY2_OFFSETOF(ZPR, dle));
     InitDl__FP2DLi(&world->dlTargetrec,SLY2_OFFSETOF(TARGETREC, dleTargetrec));
     InitDl__FP2DLi(&world->dlCid47,SLY2_OFFSETOF(LISTENER, dleListener));
@@ -174,7 +175,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlCid21,SLY2_OFFSETOF(CID21, listLink));
     InitDl__FP2DLi(&world->dlCid23,SLY2_OFFSETOF(CID23, dleList));
     InitDl__FP2DLi(&world->dlWidgetExclusive,SLY2_OFFSETOF(WIDGET, exclusiveLink));
-    InitSl(&world->slWidgetDeferred,0x4C);
+    InitSl(&world->slWidgetDeferred,SLY2_OFFSETOF(WIDGETLOAD, next));
     unsigned int i=0;
     for(;i<512;i++)InitSl(&world->objectsByOid[i],SLY2_OFFSETOF(LO, oidHashLink));
     VECTOR4 *hsv=&world->hsvLight;
