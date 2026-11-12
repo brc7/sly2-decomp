@@ -14,24 +14,24 @@
 // 0x1C3C18 StaticInit_pipe and GlobalConstructors_pipe: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* View of the pipe (a SHAPE). */
-struct PIPEV : BASIC 
-{
-    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback;
-    float length;           /* +0x038 1e10 at load: the shape's length (UpdateShapeBoundingSphere) plus D_002C0D00 */
-    void *proxyRecord; char pad40[0x50 - 0x40]; void *parentTransform; char pad54[0x6C - 0x54]; void *unknown6C; char pad70[0xBC - 0x70]; void *unknownBC; char padC0[0xE4 - 0xC0];
-    int isCyclic;           /* +0x0E4 closed shape: distances wrap, no range clamp */
-    char pad0E8[0xEC - 0xE8]; void *vertexParams; void *vertexArcLengths; void *vertexPositions; char padF8[0xFC - 0xF8]; void *unknownFC; char pad100[0x12C - 0x100]; void *unknown12C; char pad130[0x140 - 0x130]; void *incomingTangents; void *outgoingTangents; char pad148[0x17C - 0x148]; void *chain; void *pranges; char pad184[0x190 - 0x184];
-    char grabspot[0x1C];    /* +0x190 GRABSPOTDATA (its +0x1C, +0x24 follow) */
-    int isGrabDisabled;     /* +0x1AC 1 at init (SetPipeGrabEnabled sets it to !arg) */
-    void *unknown1B0;
-    DLE k;                    /* +0x1B4 kept across CloneShape */
-    void *unknown1BC;
-    qword axis;             /* +0x1C0 the reference axis (D_002A2DA0 at init) */
-    int grabParamA;         /* +0x1D0 8 at init */
-    int grabParamB;         /* +0x1D4 9 at init */
-};
-typedef char assert_PIPE_grabParamB[(unsigned int)&((PIPEV *)0)->grabParamB == 0x1D4 ? 1 : -1];
+/* The pipe is classes.h PIPE (SHAPE + GRABSPOT). */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 struct DL;
 /* The TU's .data (0x2C0D00..0x2C0D14, address order = definition order). Only pipe's code reads them. */
@@ -42,27 +42,27 @@ float D_002C0D0C = 25.0f;       /* random direction: magnitude range */
 float D_002C0D10 = 150.0f;      /* random point: range along the shape */
 extern "C" {
 extern qword D_002A2DA0, g_normalZ;   // fallback unit vectors
-void InitShape(PIPEV *p);
+void InitShape(PIPE *p);
 void InitGrabspot(void *p);
-void OnLoAdd(PIPEV *p);
-void OnLoRemove(PIPEV *p);
-void PostLoLoad(PIPEV *p);
-float UpdateShapeBoundingSphere(PIPEV *p);
-void CloneShape(PIPEV *p, LO *ploBase);
-float GetShapeMinDistance(PIPEV *);           // low distance bound
-float GetShapeMaxDistance(PIPEV *);           // high distance bound
-float GetShapeMinParam(PIPEV *);           // start distance
-void EvaluateShapeAtParam(PIPEV *, float, qword *, qword *);
+void OnLoAdd(PIPE *p);
+void OnLoRemove(PIPE *p);
+void PostLoLoad(PIPE *p);
+float UpdateShapeBoundingSphere(PIPE *p);
+void CloneShape(PIPE *p, LO *ploBase);
+float GetShapeMinDistance(PIPE *);           // low distance bound
+float GetShapeMaxDistance(PIPE *);           // high distance bound
+float GetShapeMinParam(PIPE *);           // start distance
+void EvaluateShapeAtParam(PIPE *, float, qword *, qword *);
 float ModPositive__Fff(float, float);     // wrap into range
-float ClampShapeDistance(PIPEV *, float);
-void EvaluateShapeAtDistance(PIPEV *, float, qword *, qword *);
+float ClampShapeDistance(PIPE *, float);
+void EvaluateShapeAtDistance(PIPE *, float, qword *, qword *);
 MATRIX3Q BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
-qword ConvertVecBetweenLos(PIPEV *, PIPEV *, qword);
+qword ConvertVecBetweenLos(PIPE *, PIPE *, qword);
 qword GetNormalVector(qword);
 qword GetLoWorldPos(void *q);
-void FindShapeClosestPoint(PIPEV *p, qword q, void *a, void *pv, qword *b, float *c, float *pf);
-void GetPipeGoalMatrix(PIPEV *p, float distance, int forward, MATRIX3Q *out);
-float GetRandomShapeDistanceInRange(PIPEV *,float,float);
+void FindShapeClosestPoint(PIPE *p, qword q, void *a, void *pv, qword *b, float *c, float *pf);
+void GetPipeGoalMatrix(PIPE *p, float distance, int forward, MATRIX3Q *out);
+float GetRandomShapeDistanceInRange(PIPE *,float,float);
 float RandomFloatInRange__Fff(float,float);
 qword SetVectorCylind(float,float,float);
 }
@@ -71,26 +71,26 @@ void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
 // PIPE::Init (vtable slot 7): shape init, its GRABSPOT part, grabbing enabled, the default reference axis and two
 // grab parameters (8 and 9, as HND uses).
-extern "C" void InitPipe(PIPEV *pipe)
+extern "C" void InitPipe(PIPE *pipe)
 {
     InitShape(pipe);
-    InitGrabspot(pipe->grabspot);
+    InitGrabspot(SLY2_GRABSPOT_BASE(PIPE, pipe));   /* its GRABSPOT base, without a null test */
     pipe->axis = D_002A2DA0;
-    pipe->grabParamB = 9;
-    pipe->grabParamA = 8;
-    pipe->isGrabDisabled = 1;
+    pipe->releaseEffectId = 9;
+    pipe->attachEffectId = 8;
+    pipe->grfPlayers = 1;
 }
 
 // PIPE slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's pipe list (g_sw.dlCid11).
 void PIPE::OnAdd()
 {
-    PIPEV *pipe = (PIPEV *)this;
+    PIPE *pipe = (PIPE *)this;
     OnLoAdd(pipe);
     AppendDlEntry(&g_sw.dlCid11, pipe);
 }
 
 // PIPE slot 22 (OnRemove): LO base, then leaves the world's pipe list.
-extern "C" void OnPipeRemove(PIPEV *pipe)
+extern "C" void OnPipeRemove(PIPE *pipe)
 {
     OnLoRemove(pipe);
     RemoveDlEntry(&g_sw.dlCid11, pipe);
@@ -98,18 +98,18 @@ extern "C" void OnPipeRemove(PIPEV *pipe)
 
 // PIPE post-load (slot 15): if the level left the length at the 1e10 sentinel, uses the shape's length plus
 // D_002C0D00 (1250).
-extern "C" void PostPipeLoad(PIPEV *pipe)
+extern "C" void PostPipeLoad(PIPE *pipe)
 {
     PostLoLoad(pipe);
-    if (pipe->length == 1e10f) pipe->length = UpdateShapeBoundingSphere(pipe) + D_002C0D00;
+    if (pipe->busyRadius == 1e10f) pipe->busyRadius = UpdateShapeBoundingSphere(pipe) + D_002C0D00;
 }
 
 // PIPE::Clone (slot 41): clones the shape but keeps this pipe's own 8-byte link at +0x1B4.
-extern "C" void ClonePipe(PIPEV *pipe, LO *ploBase)
+extern "C" void ClonePipe(PIPE *pipe, LO *ploBase)
 {
-    DLE k = pipe->k;
+    DLE k = pipe->dleGrab;
     CloneShape(pipe, ploBase);
-    pipe->k = k;
+    pipe->dleGrab = k;
 }
 
 // GetPipeGoalMatrix (lane 6, 2026-10-24): builds an orientation basis (M3) for a position `distance` along a path.
@@ -166,7 +166,7 @@ struct WORK { MATRIX3Q basis; qword tangent, first, direction; };
 // (side, up, along). With forward == 0 the side and up rows are flipped (climbing the other way). Used by the
 // player's pipe state to orient Sly and by the grab-spot interface.
 // Also known as: MatPipeFrame (upstream readable / Sly 1 name; MatPipeFrame__FP2LOfiPv).
-extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, MATRIX3Q *out)
+extern "C" void GetPipeGoalMatrix(PIPE *pipe, float distance, int forward, MATRIX3Q *out)
 {
     WORK w;
     U fwd;   // declared outside the inner block on purpose: the stack slot of `back` (declared inside) is freed at the
@@ -181,7 +181,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, MATR
         for (int i = 0;; ++i) {
             float offset = (i & 1) ? 10.0f * (float)(i + 1) : (float)i * -10.0f;
             float sample = distance + offset;
-            if (!pipe->isCyclic) {
+            if (!pipe->isClosed) {
                 if (sample < low || high < distance)
                     continue;
             } else
@@ -218,10 +218,10 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, MATR
 
 // GRABSPOT interface: the shape distance of the pipe point closest to the player; on open pipes clamped to
 // [100, length - 35].
-extern "C" void GetPipeClosestParam(PIPEV *pipe, void *q, float *pf)
+extern "C" void GetPipeClosestParam(PIPE *pipe, void *q, float *pf)
 {
     FindShapeClosestPoint(pipe, GetLoWorldPos(q), 0, 0, 0, 0, pf);
-    if (pipe->isCyclic == 0) {
+    if (pipe->isClosed == 0) {
         *pf = Clamp(*pf, 100.0f, GetShapeMaxDistance(pipe) - 35.0f);
     }
 }
@@ -238,7 +238,7 @@ static inline int ScaleBits(void) {
 #endif
 // GRABSPOT interface: the pipe point at distance `distance`, pushed out along the climbing frame's side axis by
 // D_002C0D04 (-50) so the hands meet the pipe surface.
-extern "C" void GetPipeGrabPosition(PIPEV *pipe, int unused, qword *pvec, float g)
+extern "C" void GetPipeGrabPosition(PIPE *pipe, int unused, qword *pvec, float g)
 {
     qword a[3];
     VECTOR4 b;
@@ -281,7 +281,7 @@ static inline qword Bc(float g) {
 }
 // GRABSPOT interface: a random point near the pipe around `distance` and a random outward direction, used to place the
 // grab-hint sparkle effect.
-extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut, float t)
+extern "C" void GetPipeSparklePosition(PIPE *pipe, qword *posOut, qword *dirOut, float t)
 {
     union {
         qword q;
@@ -309,9 +309,9 @@ extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut
 
 // GRABSPOT interface: for a closed (looping) pipe returns 1 and the [min, max] distance range a grab position wraps
 // around; open pipes return 0.
-extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
+extern "C" int GetPipeWrapRange(PIPE *pipe, float *pg)
 {
-    if (pipe->isCyclic) {
+    if (pipe->isClosed) {
         pg[0] = GetShapeMinDistance(pipe);
         pg[1] = GetShapeMaxDistance(pipe);
         return 1;
@@ -319,9 +319,10 @@ extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
     return 0;
 }
 
-// Enables or disables grabbing this pipe (+0x1AC holds the inverted flag). (inferred)
-extern "C" void SetPipeGrabEnabled(PIPEV *pipe, int f)
+// Sets GRABSPOT::grfPlayers to 1 (Sly only, as InitPipe) when f is 0, else to 0 (no player). The name assumed an
+// inverted enable flag; by the header the call with f != 0 makes the pipe ungrabbable. (inferred; name kept)
+extern "C" void SetPipeGrabEnabled(PIPE *pipe, int f)
 {
-    pipe->isGrabDisabled = (f == 0);
+    pipe->grfPlayers = (f == 0);
 }
 
