@@ -1614,10 +1614,10 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_IsStepplayerNotInGrabStateC)
 #include "../../generated/splicewrap/RefThunk_IsStepplayerNotInGrabStateC.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void SetStepplayerIdleParams(void *p, void *, void *, void *);
+extern "C" void SetStepplayerLookLimits(void *p, void *, void *, void *);
 // Splice binding for option 249 on STEPPLAYER (g_aeopid[743], thunkFn): unpacks the script's 3 arguments (Lm, Lm,
-// Lm) with RefSetArgsFromSplice, calls SetStepplayerIdleParams and returns nothing to the script.
-extern "C" CRef RefThunk_SetStepplayerIdleParams(void *p, int c, void *aref)
+// Lm) with RefSetArgsFromSplice, calls SetStepplayerLookLimits and returns nothing to the script.
+extern "C" CRef RefThunk_SetStepplayerLookLimits(void *p, int c, void *aref)
 {
     int ak[3] = {0xa, 0xa, 0xa};
     union { qword q; } v0;
@@ -1626,7 +1626,7 @@ extern "C" CRef RefThunk_SetStepplayerIdleParams(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    SetStepplayerIdleParams(p, &v0, &v1, &v2);
+    SetStepplayerLookLimits(p, &v0, &v1, &v2);
     return ref;
 }
 

@@ -450,7 +450,7 @@ void RefThunk_SetStepplayerGrabTargetEx() __asm__("RefThunk_SetStepplayerGrabTar
 void RefThunk_SetStepplayerGrabTargetAlt() __asm__("RefThunk_SetStepplayerGrabTargetAlt");
 void RefThunk_StartStepplayerGrabStateC() __asm__("RefThunk_StartStepplayerGrabStateC");
 void RefThunk_IsStepplayerNotInGrabStateC() __asm__("RefThunk_IsStepplayerNotInGrabStateC");
-void RefThunk_SetStepplayerIdleParams() __asm__("RefThunk_SetStepplayerIdleParams");
+void RefThunk_SetStepplayerLookLimits() __asm__("RefThunk_SetStepplayerLookLimits");
 void RefThunk_UnlockStepplayerLeanTarget() __asm__("RefThunk_UnlockStepplayerLeanTarget");
 void RefThunk_SetStepplayerPlayerState() __asm__("RefThunk_SetStepplayerPlayerState");
 void RefThunk_SpawnStepplayerBootyMarker() __asm__("RefThunk_SpawnStepplayerBootyMarker");
@@ -1493,7 +1493,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2030, 2, EOPID_OFF(STEPPLAYER, jtgrab.hands.psoHeld), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [740] opt 726, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartStepplayerGrabStateC), EOPID_INT(2), EOPID_NONE}, /* [741] opt 672, STEPPLAYER (+3) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsStepplayerNotInGrabStateC), EOPID_NONE, EOPID_NONE}, /* [742] opt 727, STEPPLAYER (+3) */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepplayerIdleParams), EOPID_INT(3), EOPID_NONE}, /* [743] opt 249, STEPPLAYER (+3) */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepplayerLookLimits), EOPID_INT(3), EOPID_NONE}, /* [743] opt 249, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ForceStepplayerLeanTarget), EOPID_INT(2), EOPID_NONE}, /* [744] opt 728, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_UnlockStepplayerLeanTarget), EOPID_NONE, EOPID_NONE}, /* [745] opt 729, STEPPLAYER (+3) */
     {0xA, 0x92, EOPID_OFF(STEPPLAYER, agdtIdle), EOPID_OFF(STEPPLAYER, agdtIdle), EOPID_OFF(STEPPLAYER, agdtIdle), EOPID_NONE}, /* [746] opt 730, STEPPLAYER (+3) */

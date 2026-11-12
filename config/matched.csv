@@ -282,7 +282,7 @@ RefThunk_SetStepplayerGrabTargetEx,0x10ABF8,33,match,src/game/app/class_registry
 RefThunk_SetStepplayerGrabTargetAlt,0x10AC80,33,match,src/game/app/class_registry.cpp
 RefThunk_StartStepplayerGrabStateC,0x10AD08,43,match,src/game/app/class_registry.cpp
 RefThunk_IsStepplayerNotInGrabStateC,0x10ADB8,27,match,src/game/app/class_registry.cpp
-RefThunk_SetStepplayerIdleParams,0x10AE28,55,match,src/game/app/class_registry.cpp
+RefThunk_SetStepplayerLookLimits,0x10AE28,55,match,src/game/app/class_registry.cpp
 RefThunk_ForceStepplayerLeanTarget,0x10AF08,42,match,src/game/app/class_registry.cpp
 RefThunk_UnlockStepplayerLeanTarget,0x10AFB0,29,match,src/game/app/class_registry.cpp
 RefThunk_SetStepplayerPlayerState,0x10B028,36,match,src/game/app/class_registry.cpp
@@ -1752,7 +1752,7 @@ InitIdleTimer,0x142868,5,match,src/game/gameplay/player/stepplayer.cpp
 ScheduleIdleTimer,0x142880,22,match,src/game/gameplay/player/stepplayer.cpp
 GetHeroInteractDistance,0x1428D8,135,match,src/game/gameplay/player/stepplayer.cpp
 PickHeroInteractTarget,0x142AF8,357,match,src/game/gameplay/player/stepplayer.cpp
-SetStepplayerIdleParams,0x143090,14,match,src/game/gameplay/player/stepplayer.cpp
+SetStepplayerLookLimits,0x143090,14,match,src/game/gameplay/player/stepplayer.cpp
 GetStepplayerLeanFlags,0x1430C8,65,match,src/game/gameplay/player/stepplayer.cpp
 ReleaseInteractTargetMark,0x1431D0,19,match,src/game/gameplay/player/stepplayer.cpp
 GetStepplayerStunHold,0x143220,48,match,src/game/gameplay/player/stepplayer.cpp

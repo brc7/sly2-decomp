@@ -283,7 +283,7 @@ RefThunk_SetStepplayerGrabTargetEx,0x0010ABF8,0x0010AC7C,132
 RefThunk_SetStepplayerGrabTargetAlt,0x0010AC80,0x0010AD04,132
 RefThunk_StartStepplayerGrabStateC,0x0010AD08,0x0010ADB4,172
 RefThunk_IsStepplayerNotInGrabStateC,0x0010ADB8,0x0010AE24,108
-RefThunk_SetStepplayerIdleParams,0x0010AE28,0x0010AF04,220
+RefThunk_SetStepplayerLookLimits,0x0010AE28,0x0010AF04,220
 RefThunk_ForceStepplayerLeanTarget,0x0010AF08,0x0010AFB0,168
 RefThunk_UnlockStepplayerLeanTarget,0x0010AFB0,0x0010B024,116
 RefThunk_SetStepplayerPlayerState,0x0010B028,0x0010B0B8,144
@@ -1784,7 +1784,7 @@ InitIdleTimer,0x00142868,0x0014287C,20
 ScheduleIdleTimer,0x00142880,0x001428D8,88
 GetHeroInteractDistance,0x001428D8,0x00142AF4,540
 PickHeroInteractTarget,0x00142AF8,0x0014308C,1428
-SetStepplayerIdleParams,0x00143090,0x001430C8,56
+SetStepplayerLookLimits,0x00143090,0x001430C8,56
 GetStepplayerLeanFlags,0x001430C8,0x001431CC,260
 ReleaseInteractTargetMark,0x001431D0,0x0014321C,76
 GetStepplayerStunHold,0x00143220,0x001432E0,192

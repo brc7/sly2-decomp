@@ -1803,8 +1803,9 @@ void PickHeroInteractTarget(STEPPLAYER *p)
 } // namespace M_func_00142AF8
 
 namespace M_func_00143090 {
-// Copies three pairs of idle-timer ranges into the record.
-extern "C" void SetStepplayerIdleParams(STEPPLAYER *player, LM *a, LM *b, LM *c)
+// Sets the head-look limits (option 249, and asega.cpp's animation event 24): pan, tilt and the roll at the pan limits.
+// (Was SetStepplayerIdleParams: the three LMs are almLook, not idle timers.)
+extern "C" void SetStepplayerLookLimits(STEPPLAYER *player, LM *a, LM *b, LM *c)
 {
     player->almLook[0] = *a;
     player->almLook[1] = *b;

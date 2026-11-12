@@ -76,7 +76,7 @@ void ShowCountdownHud(SW *, float);
 void HideCountdownHud(SW *);
 void SetSwAsegEyesClosed(SW *, int, int, LO *, ASEG *, float);
 void SetSoAnimIndex(ALO *, int);
-void SetStepplayerIdleParams(ALO *, char *, char *, char *);
+void SetStepplayerLookLimits(ALO *, char *, char *, char *);
 float fmodf(float a, float b);
 
 void ApplyAsegCore(ASEG *segment, ALO *palo, int applyFlags, float t, float svt, ASEGA **playerSlot);   /* ApplyAseg */
@@ -466,7 +466,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
     case 24:
         if (player->rootObject && IsBasicDerivedFrom(player->rootObject, (CID)0x34)) {
             char *pb = (char *)event->pea24;
-            SetStepplayerIdleParams(player->rootObject, pb, pb + 8, pb + 0x10);
+            SetStepplayerLookLimits(player->rootObject, pb, pb + 8, pb + 0x10);
         }
         break;
     }

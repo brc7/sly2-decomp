@@ -645,7 +645,7 @@ struct STEPPLAYER : public STEP
       undefined4 unk_0x1108[2];
       VECTOR lookOverride;   /* +0x1110 option 733: the head's pan, tilt and roll while isLookOverridden */
       undefined4 unk_0x111C;
-      LM almLook[3];   /* +0x1120 the head-look limits (SetStepplayerIdleParams, option 249): [0] pan, [1] tilt, [2] the roll at
+      LM almLook[3];   /* +0x1120 the head-look limits (SetStepplayerLookLimits, option 249): [0] pan, [1] tilt, [2] the roll at
                           the pan limits (PickHeroInteractTarget interpolates it by the clamped pan); was almIdle */
       float agdtIdle[4];   /* idle time ranges for the next idle event: {min, max} by idleKind != 0 (option 730), then by idleKind == 0
                               (option 731) (ScheduleIdleTimer) */

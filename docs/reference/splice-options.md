@@ -897,7 +897,7 @@ parent STEP; 156 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 249 | `RefThunk_SetStepplayerIdleParams` | - | method(3) | 743 |
+| 249 | `RefThunk_SetStepplayerLookLimits` | - | method(3) | 743 |
 | 342 | `virtual slot 0x5A, 0xC` | int | get | 751 |
 | 380 | `jthurt.maxHitPoints` | int | get set file | 726 |
 | 381 | `GetStepplayerHp` / `SetStepplayerHp` | int | get set | 727 |
