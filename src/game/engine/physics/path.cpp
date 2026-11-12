@@ -1040,30 +1040,29 @@ extern "C" int IsPosFreeInPathzone(PATHZONE *zone, qword pos,int flags)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C0A40 {
-struct S { int a[0x30]; };
-void *ClipEdgeToPathzone(void *p, qword a, qword b, int c, int d, int e) __asm__("ClipEdgeToPathzone");
-int FindPathzoneObstacles(void *p, int z, qword a, qword b, int c, void **ap) __asm__("FindPathzoneObstacles");
-void *ClipEdgeToConvexObstacle(void *p, qword a, qword b, int n, struct S *ps) __asm__("ClipEdgeToConvexObstacle");
-void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, int one) __asm__("MergeSegmentLists");
-// Clips a segment to the zone, then against its obstacles; returns the blocking obstacle (or 0) and the clipped end.
+int ClipEdgeToConvexObstacle(void *obstacle, qword a, qword b, int maxSegments, LSG *segments) __asm__("ClipEdgeToConvexObstacle");
+int MergeSegmentLists(int count1, LSG *list1, int count2, LSG *list2, int maxSegments, LSG *output, int operation) __asm__("MergeSegmentLists");
+int FindPathzoneObstacles(void *zone, int z, qword a, qword b, int c, void **ap) __asm__("FindPathzoneObstacles");
+// Clips the segment from..to to the zone's walkable area (at most maxSegments free spans in segments), then removes
+// each obstacle's part (MergeSegmentLists operation 1); returns the number of free spans left (0: blocked).
 // (inferred)
 // Also known as: AtFreeNav (upstream readable / Sly 1 name; AtFreeNav__FP9NAVREGIONG9VU_VECTORT1ii).
-extern "C" void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
+extern "C" int FindPathzoneSegmentBlocker(PATHZONE *zone, qword from, qword to, int maxSegments, LSG *segments)
 {
     void *ap[0x80];
-    struct S s;
-    void *pv;
+    LSG obstacleSpans[2];
+    int count;
     int n, i;
-    pv = ClipEdgeToPathzone(zone, from, to, c, d, 2);
-    if (!pv) return 0;
+    count = ClipEdgeToPathzone(zone, from, to, maxSegments, segments, 2);
+    if (!count) return 0;
     n = FindPathzoneObstacles(zone, 0, from, to, 0x80, ap);
     for (i = 0; i < n; i++) {
-        void *r = ClipEdgeToConvexObstacle(ap[i], from, to, 2, &s);
-        pv = MergeSegmentLists(pv, d, r, &s, c, d, 1);
-        if (!pv) goto out;   /* not `break`: that changes the loop's codegen */
+        int r = ClipEdgeToConvexObstacle(ap[i], from, to, 2, obstacleSpans);
+        count = MergeSegmentLists(count, segments, r, obstacleSpans, maxSegments, segments, 1);
+        if (!count) goto out;   /* not `break`: that changes the loop's codegen */
     }
 out:
-    return pv;
+    return count;
 }
 } // namespace M_func_001C0A40
 
