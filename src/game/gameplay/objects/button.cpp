@@ -673,14 +673,14 @@ extern "C" void UpdateVolbtn(VOLBTN *volumeButton, float dt)
         int j;
         int numInside;
         STACKSCOPE_ctor(stackScope);
-        CopyAb(candidates, volumeButton->pushObjects, volumeButton->numPushObjects * 4);
+        CopyAb(candidates, volumeButton->pushObjects, volumeButton->numPushObjects * (int)sizeof(LO *));
         numCandidates = volumeButton->numPushObjects;
         for (; i < volumeButton->numPushClasses; i++)
             numCandidates += FindSwObjectsByClass(&g_sw, 0x505, volumeButton->pushClasses[i], 0,
                                                       0x40 - numCandidates, &candidates[numCandidates]);
         if (volumeButton->numPushObjects == 0 && volumeButton->numPushClasses == 0)
         {
-            CopyAb(&candidates[numCandidates], g_sw.playerObjects, g_sw.cpo * 4);
+            CopyAb(&candidates[numCandidates], g_sw.playerObjects, g_sw.cpo * (int)sizeof(LO *));
             numCandidates += g_sw.cpo;
         }
         volumeButton->btn.relayArg = 0;
@@ -702,7 +702,7 @@ extern "C" void UpdateVolbtn(VOLBTN *volumeButton, float dt)
         if (volumeButton->tracksInside)
         {
             int hasChanged = 0;
-            qsort(candidates, numCandidates, 4, (int (*)(const void *, const void *))CompareVolbtnObjects);
+            qsort(candidates, numCandidates, (int)sizeof(LO *), (int (*)(const void *, const void *))CompareVolbtnObjects);
             if (volumeButton->numInside != numInside)
             {
                 hasChanged = 1;
@@ -736,7 +736,7 @@ extern "C" void UpdateVolbtn(VOLBTN *volumeButton, float dt)
             if (hasChanged)
             {
                 volumeButton->numInside = numInside;
-                CopyAb(volumeButton->objectsInside, inside, numInside * 4);
+                CopyAb(volumeButton->objectsInside, inside, numInside * (int)sizeof(LO *));
                 SendSpliceEvent((LO *)volumeButton, SPLICE_EVENT_INSIDE_CHANGED);
             }
         }
