@@ -1064,7 +1064,7 @@ struct BHVPATH : BHV
     float startParamHint;   /* +0x48 */
     int state;              /* +0x4C (3 finished) */
     float stateTime;        /* +0x50 */
-    LO *blocker;            /* +0x54 the object blocking the path */
+    struct CID14 *blocker;  /* +0x54 the convex obstacle blocking the path (FindShapeFreePoint's result) */
     int isBlocked;          /* +0x58 */
     float blockerParam;     /* +0x5C */
     float blockerRange;     /* +0x60 */

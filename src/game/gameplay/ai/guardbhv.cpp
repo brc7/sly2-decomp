@@ -2591,8 +2591,8 @@ extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
             s = behavior->blockerParam - D_002BE634;
         else
             s = behavior->blockerParam + D_002BE634;
-        float sCurve = WrapShapeDistance(((SHAPE *)behavior->blocker), s);
-        FindShapeClosestPointFromDistance(((SHAPE *)behavior->blocker), qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->blockerParam);
+        float sCurve = WrapShapeDistance(behavior->blocker, s);
+        FindShapeClosestPointFromDistance(behavior->blocker, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->blockerParam);
     }
     dir.qw = NormalizeSafeN(VuProjectOut(dir.qw, g_normalZ), D_002A2DA0);
     behavior->separation = QwordX(VuLengthXY(VuSub(point.qw, posActor)));
@@ -2764,15 +2764,15 @@ extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
 
 // 0x1789F8 UpdateBhvpath
 namespace M_UpdateBhvpath {
-struct T;
+
 struct G;
 extern struct G D_003DD020 __asm__("D_003DD020");
-/* the blocker FindShapeFreePoint returns: a shape-derived object with a flag at +0x1D8 (class unidentified) */
-struct T { char pad[0x28]; unsigned long loFlags; char pad2[0x1D8 - 0x30]; int unknown1D8; };
+
+
 void StepBhvpathAlongShape(BHVPATH *p) __asm__("StepBhvpathAlongShape");
-int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g) __asm__("FindShapeFreePoint");
-void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
-float GetShapeDistanceBetween(struct T *p, float a, float b) __asm__("GetShapeDistanceBetween");
+int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, CID14 **pp, float *pf, float g) __asm__("FindShapeFreePoint");
+void FindShapeClosestPoint(CID14 *po, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
+float GetShapeDistanceBetween(CID14 *p, float a, float b) __asm__("GetShapeDistanceBetween");
 // VU0 helper: distance between two points.
 extern "C" { static inline float Dist(qword a, qword b) {
     qword d;
@@ -2801,7 +2801,7 @@ extern "C" void UpdateBhvpath(BHVPATH *behavior) {
             if (!behavior->ignoresBlockers) {
                 SOPHYS *x = behavior->owner->physics;
                 REGENT *y = x ? x->pregent : 0;
-                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->pregent->unknown20, behavior->shape, behavior->isReversed == 0, (struct T **)&behavior->blocker, &behavior->blockerRange, behavior->pathParam);
+                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->pregent->unknown20, behavior->shape, behavior->isReversed == 0, &behavior->blocker, &behavior->blockerRange, behavior->pathParam);
                 behavior->isBlocked = n;
                 switch (n) {
                 case 0:
@@ -2812,8 +2812,8 @@ extern "C" void UpdateBhvpath(BHVPATH *behavior) {
                     break;
                 case 1:
                 case 2: {
-                    FindShapeClosestPoint(((struct T *)behavior->blocker), pos, &D_003DD020, 0, 0, 0, &g);
-                    if (80.0f < __builtin_fabsf(GetShapeDistanceBetween(((struct T *)behavior->blocker), g, behavior->blockerRange))) {
+                    FindShapeClosestPoint(behavior->blocker, pos, &D_003DD020, 0, 0, 0, &g);
+                    if (80.0f < __builtin_fabsf(GetShapeDistanceBetween(behavior->blocker, g, behavior->blockerRange))) {
                         behavior->blockerParam = g;
                         behavior->SetPathState(1);
                     } else {
@@ -2832,9 +2832,9 @@ extern "C" void UpdateBhvpath(BHVPATH *behavior) {
             break;
         case 1:
         case 4:
-            if ((((int)(((struct T *)behavior->blocker)->loFlags >> 60) & 1) == 0) || ((struct T *)behavior->blocker)->unknown1D8) {
+            if (((uchar)behavior->blocker->isInWorld == 0) || behavior->blocker->owner) {
                 behavior->SetPathState(0);
-            } else if (__builtin_fabsf(GetShapeDistanceBetween(((struct T *)behavior->blocker), behavior->blockerParam, behavior->blockerRange)) < 80.0f) {
+            } else if (__builtin_fabsf(GetShapeDistanceBetween(behavior->blocker, behavior->blockerParam, behavior->blockerRange)) < 80.0f) {
                 behavior->SetPathState(0);
             } else {
                 float r = behavior->state == 1 ? behavior->nearRadius : behavior->farRadius;
