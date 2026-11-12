@@ -4203,7 +4203,7 @@ extern "C" void ClearJsgJtMode(RELAYJSG *script)
     STEPPLAYER *pstepplayer;
     pstepplayer = script->pstepplayerMode;
     if (pstepplayer != 0) {
-        EndJtMode((JTMODE *)((char *)pstepplayer + 0xF00));
+        EndJtMode(&pstepplayer->jtmode);
         script->pstepplayerMode = 0;
     }
 }
